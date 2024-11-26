@@ -1,5 +1,6 @@
 %{
     #include "syntax.tab.h"
+    #include <stdbool.h>
 
     extern YYSTYPE yylval;
     extern int nb_ligne;
@@ -78,15 +79,20 @@ ENDIF {col += yyleng; return mc_endif;};
 "+" return sym_plus;
 "-" return sym_moins;
 
-"=" return aff;
+"=" return oper_initialisation;
+"<-" return aff;
 
+"," return vg;
 ";" return pvg;
 "." return point;
 
 "|" return separateur;
 
-"[" return parenthese_ouv;
-"]" return parenthese_fer;
+"(" return parenthese_ouv;
+")" return parenthese_fer;
+
+"[" return crochet_ouv;
+"]" return crochet_fer;
 
 "*" return sym_mul;
 "/" return sym_div;
@@ -101,6 +107,11 @@ ENDIF {col += yyleng; return mc_endif;};
 "<" return oper_inf;
 "!=" return oper_inegalite;
 "==" return oper_egalite;
+
+"%d" return signe_formattage_entier;
+"%f" return signe_formattage_reel;
+
+\" return double_quote;
 
 \n {nb_ligne++; col = 0;}
 [ \t]

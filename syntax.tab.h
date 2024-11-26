@@ -52,35 +52,42 @@
      mc_float = 268,
      point = 269,
      pvg = 270,
-     separateur = 271,
-     parenthese_ouv = 272,
-     parenthese_fer = 273,
-     aff = 274,
-     sym_mul = 275,
-     sym_div = 276,
-     sym_plus = 277,
-     sym_moins = 278,
-     mc_for = 279,
-     mc_do = 280,
-     mc_endfor = 281,
-     mc_if = 282,
-     mc_endif = 283,
-     mc_else = 284,
-     mc_input = 285,
-     mc_write = 286,
-     idf = 287,
-     cst_entier = 288,
-     cst_reel = 289,
-     oper_et = 290,
-     oper_ou = 291,
-     oper_negation = 292,
-     oper_sup_egal = 293,
-     oper_inf_egal = 294,
-     oper_sup = 295,
-     oper_inf = 296,
-     oper_inegalite = 297,
-     oper_egalite = 298,
-     err = 299
+     vg = 271,
+     separateur = 272,
+     crochet_ouv = 273,
+     crochet_fer = 274,
+     parenthese_ouv = 275,
+     parenthese_fer = 276,
+     aff = 277,
+     oper_initialisation = 278,
+     double_quote = 279,
+     sym_mul = 280,
+     sym_div = 281,
+     sym_plus = 282,
+     sym_moins = 283,
+     mc_for = 284,
+     mc_do = 285,
+     mc_endfor = 286,
+     mc_if = 287,
+     mc_endif = 288,
+     mc_else = 289,
+     mc_input = 290,
+     mc_write = 291,
+     idf = 292,
+     cst_entier = 293,
+     cst_reel = 294,
+     oper_et = 295,
+     oper_ou = 296,
+     oper_negation = 297,
+     oper_sup_egal = 298,
+     oper_inf_egal = 299,
+     oper_sup = 300,
+     oper_inf = 301,
+     oper_inegalite = 302,
+     oper_egalite = 303,
+     signe_formattage_entier = 304,
+     signe_formattage_reel = 305,
+     err = 306
    };
 #endif
 
@@ -96,11 +103,12 @@ typedef union YYSTYPE
     int entier;
     char* str;
     float reel;
+    int boolean;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 104 "syntax.tab.h"
+#line 112 "syntax.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -1,0 +1,22 @@
+InDebut
+
+X[1] <- X + 1 * 5 - (5 / 4);
+X <- X + 1 * 5 - (5 / 4);
+
+For(I <- 2; I < 6; I++) DO
+    X <- X + 1 * 5 - (5 / 4);
+ENDFOR
+
+IF (I < 4) DO
+    X <- 2;
+ELSE
+    IF (X < 5) DO
+    ELSE
+        For (I <- 1; I < 6; I++) DO
+            Input("%d", I);
+            Write();
+        ENDFOR
+    ENDIF
+ENDIF
+
+InFin.
