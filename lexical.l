@@ -1,10 +1,9 @@
 %{
     #include "syntax.tab.h"
-    #include <stdbool.h>
 
     extern YYSTYPE yylval;
     extern int nb_ligne;
-    extern int col;    
+    extern int col;
 %}
 
 chiffre [0-9]
@@ -19,36 +18,36 @@ COMMENTAIRE1 #.*
 COMMENTAIRE2 \/\/.*
 COMMENTAIRE3 "/*"(.|\n)*"*/"
 COMMENTAIRE {COMMENTAIRE1}|{COMMENTAIRE2}|{COMMENTAIRE3}
+CHAINE_CARACTERE ({lettre}|{chiffre})*
 
 %%
-import {col += yyleng; return mc_import;};
-ISIL {col += yyleng; return mc_isil;};
-io {col += yyleng; return mc_io;};
-lang {col += yyleng; return mc_lang;};
+import      {col += yyleng; return mc_import;};
+ISIL        {col += yyleng; return mc_isil;};
+io          {col += yyleng; return mc_io;};
+lang        {col += yyleng; return mc_lang;};
 
-PDec {col += yyleng; return mc_dec;};
-Programme {col += yyleng; return mc_programme;};
-InDebut {col += yyleng; return mc_debut;}
-InFin {col += yyleng; return mc_fin;};
+PDec        {col += yyleng; return mc_dec;};
+Programme   {col += yyleng; return mc_programme;};
+InDebut     {col += yyleng; return mc_debut;}
+InFin       {col += yyleng; return mc_fin;};
 
-final {col += yyleng; return mc_final;};
-Integer {col += yyleng; return mc_int;};
-Float {col += yyleng; return mc_float;};
+final       {col += yyleng; return mc_final;};
+Integer     {col += yyleng; return mc_int;};
+Float       {col += yyleng; return mc_float;};
 
-Input {col += yyleng; return mc_input;};
-Write {col += yyleng; return mc_write;};
+Input       {col += yyleng; return mc_input;};
+Write       {col += yyleng; return mc_write;};
 
-For {col += yyleng; return mc_for;};
-ENDFOR {col += yyleng; return mc_endfor;};
+For         {col += yyleng; return mc_for;};
+ENDFOR      {col += yyleng; return mc_endfor;};
 
-IF {col += yyleng; return mc_if;};
-DO {col += yyleng; return mc_do;};
-ELSE {col += yyleng; return mc_else;};
-ENDIF {col += yyleng; return mc_endif;};
-
+IF          {col += yyleng; return mc_if;};
+DO          {col += yyleng; return mc_do;};
+ELSE        {col += yyleng; return mc_else;};
+ENDIF       {col += yyleng; return mc_endif;};
 
 {REEL} {
-    yylval.reel = atof(yytext);
+    yylval.real = atof(yytext);
     col += yyleng;
     return cst_reel;
 };
@@ -74,13 +73,15 @@ ENDIF {col += yyleng; return mc_endif;};
     return idf;
 };
 
+{CHAINE_CARACTERE} {return chaine_caractere;};
+
 {COMMENTAIRE} {nb_ligne++; col = 0;};
 
 "+" return sym_plus;
 "-" return sym_moins;
 
 "=" return oper_initialisation;
-"<-" return aff;
+"<--" return aff;
 
 "," return vg;
 ";" return pvg;
@@ -113,8 +114,8 @@ ENDIF {col += yyleng; return mc_endif;};
 
 \" return double_quote;
 
-\n {nb_ligne++; col = 0;}
-[ \t]
+\n {nb_ligne++; col = 1;}
+[ \t] {col += yyleng;}
 
 . {printf("Erreur lexicale a la ligne %d dans la chaine %s\n", nb_ligne, yytext); return err;}
 %%

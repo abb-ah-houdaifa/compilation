@@ -1,20 +1,29 @@
+import ISIL.lang;
+
+Programme ISIL_A
+PDec
+    Integer E2 = 2 | E4 = 3 | Et = 6;
+    Integer E3[1];
 InDebut
 
-X[1] <- X + 1 * 5 - (5 / 4);
-X <- X + 1 * 5 - (5 / 4);
-
-For(I <- 2; I < 6; I++) DO
-    X <- X + 1 * 5 - (5 / 4);
+X[1] <-- X + 1 * 5 - (5 / 4);
+X <-- X + 1 * 5 - (5 / 4);
+/*
+commentaire
+*/
+For(I <-- 2; I < 6; I++) DO
+    X <-- X + 1 * 5 - (5 / 4);
 ENDFOR
-
-IF (I < 4) DO
-    X <- 2;
+// commentaire
+# commentaire
+IF ((I < 4) && !(X > 7)) DO
+    X <-- 2;
 ELSE
     IF (X < 5) DO
     ELSE
-        For (I <- 1; I < 6; I++) DO
+        For (I <-- 1; I < 6; I++) DO
             Input("%d", I);
-            Write();
+            Write("afsdafas", D, O);
         ENDFOR
     ENDIF
 ENDIF
