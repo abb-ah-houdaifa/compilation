@@ -2,28 +2,32 @@ import ISIL.lang;
 
 Programme ISIL_A
 PDec
-    Integer E2 = 2 | E4 = 3 | Et = 6;
-    Integer E3[1];
+    Integer E1 = 2 | E2 = 3 | E3 = (-06);
+    Float E4 = 9.234;
+    Integer E5[8];
+    final Integer E6 = 9;
+    Float K = (-9.2);
 InDebut
 
-X[1] <-- X + 1 * 5 - (5 / 4);
-X <-- X + 1 * 5 - (5 / 4);
 /*
-commentaire
+    commentaire
 */
+
+E1 <-- E6;
+
 For(I <-- 2; I < 6; I++) DO
-    X <-- X + 1 * 5 - (5 / 4);
 ENDFOR
+
 // commentaire
+
 # commentaire
+
 IF ((I < 4) && !(X > 7)) DO
-    X <-- 2;
 ELSE
     IF (X < 5) DO
     ELSE
         For (I <-- 1; I < 6; I++) DO
             Input("%d", I);
-            Write("afsdafas", D, O);
         ENDFOR
     ENDIF
 ENDIF

@@ -46,10 +46,20 @@
         struct entite* suivant;
     };
 
+    struct tableau {
+        int tableau;
+        int index;
+    };
+
+    struct constante {
+        int isFloat;
+        char valeur[10];
+    };
+
 
 
 /* Line 1676 of yacc.c  */
-#line 53 "syntax.tab.h"
+#line 63 "syntax.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -117,18 +127,20 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 29 "syntax.y"
+#line 38 "syntax.y"
 
     int entier;
     float real;
     char* str;
     // definir un nouveau type complexe (struct)
     struct entite entite;
+    struct tableau tableau;
+    struct constante constante;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 132 "syntax.tab.h"
+#line 144 "syntax.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

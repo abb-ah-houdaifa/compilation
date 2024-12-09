@@ -3,46 +3,41 @@
 #include <string.h>
 #include <stdbool.h>
 
-#ifndef TS_H_   /* Include guard */
-#define TS_H_
+// todo regler le probleme des float
+// taches restantes :
+/*
+    1. Instruction For
+    2. Instruction If
+    3. les bibliotheques
+    4. les entrees sorties
+*/
 
 // designe une entite de type variable simple
 typedef struct SymboleVariable {
+    bool status;            // le champ est-il rempli
     char* nom;              // Nom de l'entité
     char* code;             // Type (idf, const, etc.)
     bool isFloat;           // vrai => float, sinon => integer
-    char valeur[10];             // Valeur si constante
+    char valeur[10];             // Valeur
     bool isConst;           // vrai si constante, faux sinon
+    bool isTableau;         // vrai si la variable est un tableau
     struct SymboleVariable* suivant;
 } SymboleVariable;
 
-SymboleVariable* tete_variables = NULL; // Pointeur vers la tête de la liste
+SymboleVariable* tete_variables = NULL; // Pointeur vers la tête de la liste des variables simples
 SymboleVariable* queue_variables = NULL; // Pointeur vers la queue de la liste pour faciliter l'ajout
 
-bool inserer_variable(char* nom, char* code, bool isFloat, char* valeur, bool isConst);
+bool remplir_variable(char* nom, char* code, bool isFloat, char* valeur, bool isConst, bool isTableu);
+void inserer_variable(char* nom);
 SymboleVariable* rechercher_variable(char* nom);
-void afficher_table_variable();
+void afficher_table_variables();
 bool verifier_double_declaration(char* nom);
 bool verifier_non_declaration(char* nom);
 bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat);
-bool verifier_modification_const(char* nom);
-void liberer_table();
-
-// designe une entite de type variable tableau 
-typedef struct SymboleTableau {
-    char* nom;
-    bool isFloat;       // vrai float, sinon integer
-    int taille;
-    struct SymboleTableau* suivant;
-} SymboleTableau;
-
-SymboleTableau* tete_tableaux = NULL;
-SymboleTableau* queue_tableaux = NULL;
-
-SymboleTableau* rechercher_tableau(char* nom);
-bool inserer_tableau(char* nom, bool isFloat, int taille);
-bool verifier_taille_tableau(char* nom, int index);
-void afficher_table_variable();
+int verifier_modification_const(char* nom);
+bool verifier_si_tableau(char* nom);
+int verifier_taille_tableau(char* nom, int index);
+void afficher_table_variables();
 
 SymboleVariable* rechercher_variable(char* nom) {
     SymboleVariable *ptr = tete_variables;
@@ -58,7 +53,7 @@ SymboleVariable* rechercher_variable(char* nom) {
     return ptr;
 }
 
-SymboleVariable* creer_noeud_symbol_variable(char* nom, char* code, bool isFloat, char valeur[], bool isConst) {
+SymboleVariable* creer_noeud_symbol_variable(char* nom) {
     SymboleVariable* nouveau = (SymboleVariable*)malloc(sizeof(SymboleVariable));
 
     // verifier si l'espace memoire a ete alloue
@@ -66,31 +61,26 @@ SymboleVariable* creer_noeud_symbol_variable(char* nom, char* code, bool isFloat
         printf("Erreur d'allocation memoire!");
         exit(EXIT_FAILURE);
     }
+    
     nouveau->nom = strdup(nom);
-    nouveau->code = strdup(code);
-    nouveau->isFloat = isFloat;
-    strcpy(nouveau->valeur, valeur);
-    nouveau->isConst = isConst;
+    nouveau->code = "identificateur";
+    nouveau->status = false;
+    strcpy(nouveau->valeur, "");
+    nouveau->isConst = false;
+    nouveau->isFloat = false;
+    nouveau->isTableau = false;
     nouveau->suivant = NULL;
 
     return nouveau;
 }
 
+void inserer_variable(char* nom) {
 
-bool inserer_variable(char* nom, char* code, bool isFloat, char *valeur, bool isConst) {
-    // verifier si le nom est deja utilise
-    if (rechercher_variable(nom)) {
-        printf("Erreur sémantique : identificateur '%s' déjà déclaré.\n", nom);
-        return false;
+    if (rechercher_variable(nom) != NULL) {
+        return;
     }
-
-    if (rechercher_tableau(nom)) {
-        printf("Erreur sémantique : identificateur '%s' déjà déclaré. comme tableau\n", nom);
-        return false;
-    }
-
     // creer le noeud
-    SymboleVariable* nouveau = creer_noeud_symbol_variable(nom, code, isFloat, valeur, isConst);
+    SymboleVariable* nouveau = creer_noeud_symbol_variable(nom);
 
     // ajouter le chainage
     if (tete_variables == NULL) {
@@ -101,12 +91,41 @@ bool inserer_variable(char* nom, char* code, bool isFloat, char *valeur, bool is
         queue_variables->suivant = nouveau;
         queue_variables = nouveau;
     }
+}
+
+bool remplir_variable(char* nom, char* code, bool isFloat, char *valeur, bool isConst, bool isTableau) {
+    SymboleVariable* symbole = rechercher_variable(nom);
+    
+    // erreur nom reconnue
+    if (symbole == NULL) {
+        printf("Erreur sémantique : identificateur '%s' n'est pas reconnu.\n", nom);
+        return false;
+    }
+
+    // idf deja declare
+    if (symbole->status) {
+        printf("Erreur sémantique : identificateur '%s' déjà déclaré.\n", nom);
+        return false;
+    }
+
+    // printf("%s tableau: %d valeur: %s const: %d\n", nom, isTableau, valeur, isConst);
+    // remplir les champs
+    symbole->status = true;
+    symbole->isConst = isConst;
+    symbole->code = code;
+    symbole->isFloat = isFloat;
+    symbole->isTableau = isTableau;
+    strcpy(symbole->valeur, valeur);
+
+    // printf("%s tableau: %d valeur: %s const: %d\n", symbole->nom, symbole->isTableau, symbole->valeur, symbole->isConst);
 
     return true;
 }
 
 bool verifier_double_declaration(char* nom) {
-    if (rechercher_variable(nom)) {
+    SymboleVariable* existant = rechercher_variable(nom);
+
+    if (existant->status) {
         printf("Erreur sémantique : identificateur '%s' déjà déclaré.\n", nom);
         return true;
     }
@@ -115,7 +134,10 @@ bool verifier_double_declaration(char* nom) {
 }
 
 bool verifier_non_declaration(char* nom) {
-    if (!rechercher_variable(nom)) {
+    SymboleVariable* existant = rechercher_variable(nom);
+
+    // si le champ n'est pas rempli => status = 0 = false
+    if (!existant->status) {
         printf("Erreur sémantique : identificateur '%s' non déclaré.\n", nom);
         return true;
     }
@@ -143,127 +165,176 @@ bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat) {
     return true;
 }
 
-bool verifier_modification_const(char* nom) {
-    SymboleVariable* symbole = rechercher_variable(nom);
-    if (symbole && symbole->isConst) {
-        printf("Erreur sémantique : modification de la constante '%s' interdite.\n", nom);
-        return true;
-    }
-
-    return false;
+bool type_identificateur(char* nom) {
+    SymboleVariable* entite = rechercher_variable(nom);
+    return entite->isFloat;
 }
 
-void afficher_table_variable() {
+// verifier si l'entite est une constante et retourne -1
+// sinon elle retourne le type de l'entite
+int verifier_modification_const(char* nom) {
+    SymboleVariable* entite = rechercher_variable(nom);
+
+    if (entite->isTableau) {
+        return -2;
+    }
+    if (entite->isConst) {
+        return -1;
+    }
+
+    return entite->isFloat;
+}
+
+bool verifier_si_tableau(char* nom) {
+    SymboleVariable* entite = rechercher_variable(nom);
+
+    return entite->isTableau;
+}
+
+// verifier si la taille du tableau ete depasse et retourne -1
+// sinon elle retroune le type de l'entite Float ou Integer
+int verifier_taille_tableau(char* nom, int index) {
+    SymboleVariable* entite = rechercher_variable(nom);
+
+    int tailleTableau = atoi(entite->valeur);
+
+    // verifier si l'entite est un tableau
+    if (!entite->isTableau) {
+        return -2;
+    }
+
+    // verifier le depassement de la taille
+    if (tailleTableau <= index || index < 0) {
+        return -1;
+    }
+
+    printf("%s entite %d\n",entite->nom, entite->isFloat);
+    return entite->isFloat;
+}
+
+void afficher_table_variables() {
     SymboleVariable* ptr = tete_variables;
 
     printf("\n\t/***************Table des symboles des variables******************/\n");
-    printf("\t______________________________________________________________________________\n");
-    printf("\t| NomEntite\t    |   CodeEntite   |  TypeEntite  | ValeurEntite |  Constante |\n");
-    printf("\t______________________________________________________________________________\n");
+    printf("\t________________________________________________________________________________________________\n");
+    printf("\t| NomEntite\t    |   CodeEntite   |  TypeEntite  | ValeurEntite |  Constante |    Tableau    |\n");
+    printf("\t|___________________|________________|______________|______________|____________|_______________|\n");
     while (ptr != NULL) {
         char* type = (ptr->isFloat) ? "Float" : "Integer";
         char* constante = (ptr->isConst) ? "Oui" : "Non";
+        char* tableau = (ptr->isTableau) ? "Oui": "Non";
+        char* valeur = (ptr->valeur == NULL) ? "" : ptr->valeur;
         
-        printf("\t|%18s | %10s | %12s | %12s |\t %s \t|\n", ptr->nom, ptr->code, type, ptr->valeur ,constante);
+        printf("\t|%18s | %10s | %12s | %12s |\t %s \t|\t %s \t|\n", ptr->nom, ptr->code, type, ptr->valeur ,constante, tableau);
         ptr = ptr->suivant;
     }
-    printf("\n\n");
+
+printf("\t|___________________|________________|______________|______________|____________|_______________|\n");    printf("\n\n");
 }
 
-// les fonctions de manipulation de la table de symboles des tableaux
+typedef struct TypeSM{
+    char nom[20];
+    char type[20];
+    struct TypeSM* suivant;
+} TypeSM;
 
-SymboleTableau* rechercher_tableau(char* nom) {
-    SymboleTableau* ptr = tete_tableaux;
+TypeSM* tete_separateurs = NULL;
+TypeSM* queue_separateurs = NULL;
 
-    while (
-        ptr != NULL &&
-        (strcmp(nom, ptr->nom) != 0)
-    ) {
+TypeSM* tete_mots_cles = NULL;
+TypeSM* queue_mots_cles = NULL;
+
+TypeSM* rechercher_mots_separateurs(bool isSeparateur, char nom[]);
+TypeSM* creer_noeud_separateur_mots_separateurs(bool isSeparateur, char nom[]);
+void inserer_mots_separateurs(bool isSeparateur, char nom[]);
+void afficher_table_separateur_mot();
+
+TypeSM* rechercher_mots_separateurs(bool isSeparateur, char nom[]) {
+    TypeSM* ptr = (isSeparateur) ? tete_separateurs : tete_mots_cles;
+
+    while ((ptr != NULL) && (strcmp(nom, ptr->nom) != 0)) {
         ptr = ptr->suivant;
     }
 
     return ptr;
 }
 
-SymboleTableau* creer_noeud_symbol_tableau(char* nom, bool isFloat, int taille) {
-    SymboleTableau* nouveau = (SymboleTableau*)malloc(sizeof(SymboleTableau));
-
+TypeSM* creer_noeud_separateur_mots_separateurs(bool isSeparateur, char nom[]) {
+    TypeSM* nouveau = (TypeSM*)malloc(sizeof(TypeSM));
+    
     // verifier si l'espace memoire a ete alloue
     if (nouveau == NULL) {
         printf("Erreur d'allocation memoire!");
         exit(EXIT_FAILURE);
     }
-    nouveau->nom = strdup(nom);
-    nouveau->isFloat = isFloat;
-    nouveau->taille = taille;
+
+    char type[20];
+    strcpy(type, ((isSeparateur) ? "Separateur" : "Mot cle"));
+
+    strcpy(nouveau->nom, nom);
+    strcpy(nouveau->type, type);
+
     nouveau->suivant = NULL;
 
     return nouveau;
 }
 
-bool inserer_tableau(char* nom, bool isFloat, int taille) {
-    // verifier si le nom est deja utilise
-    if (rechercher_variable(nom)) {
-        printf("Erreur sémantique : taleau '%s' déjà déclaré comme variable.\n", nom);
-        return false;
+void inserer_mots_separateurs(bool isSeparateur, char nom[]) {
+    // verifier si l'entite est deja inseree
+    if (rechercher_mots_separateurs(isSeparateur, nom) != NULL) {
+        return;
     }
 
-    if (rechercher_tableau(nom)) {
-        printf("Erreur sémantique : taleau '%s' déjà déclaré.\n", nom);
-        return false;
+    TypeSM* nouveau = creer_noeud_separateur_mots_separateurs(isSeparateur, nom);
+
+    if (isSeparateur && tete_separateurs == NULL) {
+        tete_separateurs = queue_separateurs = nouveau;
+        return;
+    } 
+    
+    if (!isSeparateur && tete_mots_cles == NULL) {
+        tete_mots_cles = queue_mots_cles = nouveau;
+        return;
     }
 
-    if (taille < 0) {
-        printf("Erreur sémantique : la taille du tableau doit etre > 0");
-        return false;
-    }
-
-    // creer le noeud
-    SymboleTableau* nouveau = creer_noeud_symbol_tableau(nom, isFloat, taille);
-
-    // ajouter le chainage
-    if (tete_tableaux == NULL) {
-        // ajouter dans la tete de la liste
-        tete_tableaux = queue_tableaux = nouveau;
+    TypeSM* queue = (isSeparateur) ? queue_separateurs : queue_mots_cles;
+    queue->suivant = nouveau;
+    
+    if (isSeparateur) {
+        queue_separateurs = nouveau;
     } else {
-        // ajouter dans la fin de la liste
-        queue_tableaux->suivant = nouveau;
-        queue_tableaux = nouveau;
+        queue_mots_cles = nouveau;
     }
-
-    return true;
 }
 
-bool verifier_taille_tableau(char* nom, int index) {
-    SymboleTableau* symbole = rechercher_tableau(nom);
-	if (symbole && symbole->taille >0 &&  index <=0){
-		printf("Erreur sémantique : taille du tableau doit etre positive");
-        return false;
-	}
-		
-    if (symbole && symbole->taille > 0 && index >= symbole->taille) {
-        printf("Erreur sémantique : dépassement de la taille du tableau '%s'.\n", nom);
-        return false;
+
+void afficher_table_separateur_mot() {
+    TypeSM* ptr = tete_mots_cles;
+
+    printf("\n/***************Table des symboles mots cles*************/\n");
+    printf("\t___________________________\n");
+    printf("\t| NomEntite |  CodeEntite | \n");
+    printf("\t|___________|_____________|\n");
+    
+    while (ptr != NULL) { 
+        printf("\t|%10s |%12s | \n",ptr->nom, ptr->type);
+        ptr = ptr->suivant;       
     }
 
-    return true;
-}
-
-void afficher_table_tableaux() {
-    SymboleTableau* ptr = tete_tableaux;
-
-    printf("\n\t/***************Table des symboles des tableaux******************/\n");
-    printf("\t______________________________________________________\n");
-    printf("\t|     NomEntite     |  TypeEntite  |  TailleTableau  |\n");
-    printf("\t______________________________________________________\n");
-
-    while (ptr != NULL) {
-        char* type = (ptr->isFloat) ? "Float" : "Integer";
-        
-        printf("\t|%18s | %10s   | %14d  |\n", ptr->nom, type, ptr->taille);
-        ptr = ptr->suivant;
-    }
+    printf("\t|_________________________|\n");
     printf("\n\n");
-}
 
-#endif
+    ptr = tete_separateurs;
+
+    printf("\n/***************Table des symboles separateurs*************/\n");
+    printf("\t___________________________\n");
+    printf("\t| NomEntite |  CodeEntite | \n");
+    printf("\t|___________|_____________|\n");
+    
+    while (ptr != NULL) { 
+        printf("\t|%10s |%12s | \n",ptr->nom, ptr->type);
+        ptr = ptr->suivant;       
+    }
+
+    printf("\t|_________________________|\n");
+}
