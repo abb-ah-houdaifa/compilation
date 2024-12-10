@@ -3,11 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-// todo regler le probleme des float
 // taches restantes :
 /*
-    1. Instruction For
-    2. Instruction If
     3. les bibliotheques
     4. les entrees sorties
 */
@@ -23,6 +20,9 @@ typedef struct SymboleVariable {
     char valeur[10];        // Valeur si c'est une varibale, indice si c'est un tableau
     struct SymboleVariable* suivant;
 } SymboleVariable;
+
+bool biblio_io_declaree = false;
+bool biblio_lang_declaree = false;
 
 SymboleVariable* tete_variables = NULL; // Pointeur vers la tête de la liste des variables simples
 SymboleVariable* queue_variables = NULL; // Pointeur vers la queue de la liste pour faciliter l'ajout

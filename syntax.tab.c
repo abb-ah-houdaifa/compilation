@@ -548,9 +548,9 @@ static const yytype_uint16 yyrline[] =
      234,   238,   248,   252,   260,   261,   265,   266,   266,   270,
      271,   272,   273,   275,   299,   312,   325,   331,   344,   363,
      369,   373,   377,   382,   427,   431,   436,   438,   447,   485,
-     486,   489,   490,   493,   494,   495,   498,   499,   500,   501,
-     502,   503,   504,   507,   508,   510,   515,   516,   519,   520,
-     522,   524,   526,   526,   529,   529
+     486,   489,   490,   493,   494,   495,   498,   506,   514,   522,
+     530,   538,   546,   549,   561,   563,   568,   569,   572,   573,
+     575,   577,   579,   579,   582,   582
 };
 #endif
 
@@ -1980,7 +1980,7 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 382 "syntax.y"
     {
-    char error[30];
+    char error[20];
     // non declaration
     if (verifier_non_declaration((yyvsp[(1) - (2)].str))) {
         sprintf(error, "Non declaration de l'identificateur %s", (yyvsp[(1) - (2)].str));
@@ -2100,10 +2100,126 @@ yyreduce:
 ;}
     break;
 
+  case 56:
+
+/* Line 1455 of yacc.c  */
+#line 498 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 57:
+
+/* Line 1455 of yacc.c  */
+#line 506 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 58:
+
+/* Line 1455 of yacc.c  */
+#line 514 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 59:
+
+/* Line 1455 of yacc.c  */
+#line 522 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 60:
+
+/* Line 1455 of yacc.c  */
+#line 530 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 61:
+
+/* Line 1455 of yacc.c  */
+#line 538 "syntax.y"
+    {
+        if ((yyvsp[(1) - (3)].entier) != (yyvsp[(3) - (3)].entier)) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", (yyvsp[(2) - (3)].str));
+            erreur_semantique(error);
+            return;
+        }
+    ;}
+    break;
+
+  case 62:
+
+/* Line 1455 of yacc.c  */
+#line 546 "syntax.y"
+    {(yyval.entier) = (yyvsp[(1) - (1)].entier);;}
+    break;
+
+  case 63:
+
+/* Line 1455 of yacc.c  */
+#line 549 "syntax.y"
+    {
+        int type = type_variable((yyvsp[(1) - (1)].str));
+
+        if (type == -1) {
+            char error[20];
+            sprintf(error, "Non declaration de l'identificateur %s", (yyvsp[(1) - (1)].str));
+            erreur_semantique(error);
+            return;
+        }
+
+        (yyval.entier) = type;
+    ;}
+    break;
+
+  case 64:
+
+/* Line 1455 of yacc.c  */
+#line 561 "syntax.y"
+    {(yyval.entier) = (yyvsp[(1) - (1)].constante).isFloat;;}
+    break;
+
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 510 "syntax.y"
+#line 563 "syntax.y"
     {
     (yyval.str) = (yyvsp[(1) - (2)].str);
 ;}
@@ -2112,7 +2228,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2116 "syntax.tab.c"
+#line 2232 "syntax.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2324,7 +2440,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 530 "syntax.y"
+#line 583 "syntax.y"
 
 
 int main() {

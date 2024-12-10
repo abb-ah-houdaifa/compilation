@@ -14,7 +14,7 @@ InDebut
 */
 
 
-For(I <-- 1; I < 9.2; I++) DO
+For(I <-- 1; I < 9 && I > 3; R++) DO
 ENDFOR
 
 

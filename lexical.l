@@ -136,12 +136,12 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 "&&" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_et;}
 "!" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_negation;}
 
-">=" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_sup_egal;}
-"<=" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_inf_egal;}
-">" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_sup;}
-"<" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_inf;}
-"!=" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_inegalite;}
-"==" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_egalite;}
+">=" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup_egal;}
+"<=" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf_egal;}
+">" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup;}
+"<" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf;}
+"!=" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inegalite;}
+"==" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_egalite;}
 
 "%d" {col += yyleng; inserer_mots_separateurs(1,yytext); return signe_formattage_entier;}
 "%f" {col += yyleng; inserer_mots_separateurs(1,yytext); return signe_formattage_reel;}

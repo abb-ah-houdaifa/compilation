@@ -52,13 +52,13 @@ void erreur_semantique(const char *msg);
 %token mc_for mc_do mc_endfor mc_if mc_endif mc_else mc_input mc_write
 %token <str> idf <entier> cst_entier <real> cst_reel
 %token oper_et oper_ou oper_negation
-%token oper_sup_egal oper_inf_egal oper_sup oper_inf oper_inegalite oper_egalite
+%token <str> oper_sup_egal oper_inf_egal oper_sup oper_inf oper_inegalite oper_egalite
 %token signe_formattage_entier signe_formattage_reel
 %token err
 %token chaine_caractere
 %start S
 %right aff
-%type <entier> Type
+%type <entier> Type COMPARAISON COMPARAISON1
 %type <entite> List_Idf_V_T V_T B LIST_AFF Affect_FINALE VARIABLE
 %type <tableau> SUITE_IDF
 %type <constante> CST_TYPE EXPRESSION_1 EXPRESSION_2 EXPRESSION_ARITHMETIQUE
@@ -380,7 +380,7 @@ EXPRESSION_2:
     };
 
 VARIABLE: idf SUITE_IDF {
-    char error[30];
+    char error[20];
     // non declaration
     if (verifier_non_declaration($1)) {
         sprintf(error, "Non declaration de l'identificateur %s", $1);
@@ -438,7 +438,7 @@ INSTRUCTION_FOR: mc_for parenthese_ouv PARAMETRE_BOUCLE parenthese_fer mc_do BLO
 PARAMETRE_BOUCLE: INITIALISATION_COMPTEUR pvg CONDITION pvg INCREMENTATION_COMPTEUR {
     if (strcmp($1, $5) != 0) {
         char error[20];
-        sprintf(error, "La varaible %s de la partie initialisation doit etre incremente", $1);
+        sprintf(error, "La varaible %s de la partie initialisation doit etre incrementee", $1);
         erreur_semantique(error);
         return;
     }
@@ -495,17 +495,70 @@ CONDITION2:
     COMPARAISON;
 
 COMPARAISON: 
-    COMPARAISON1 oper_inf COMPARAISON |
-    COMPARAISON1 oper_inf_egal COMPARAISON |
-    COMPARAISON1 oper_sup COMPARAISON |
-    COMPARAISON1 oper_sup_egal COMPARAISON |
-    COMPARAISON1 oper_egalite COMPARAISON |
-    COMPARAISON1 oper_inegalite COMPARAISON |
-    COMPARAISON1;
+    COMPARAISON1 oper_inf COMPARAISON {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    } |
+    COMPARAISON1 oper_inf_egal COMPARAISON  {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    }|
+    COMPARAISON1 oper_sup COMPARAISON  {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    }|
+    COMPARAISON1 oper_sup_egal COMPARAISON  {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    }|
+    COMPARAISON1 oper_egalite COMPARAISON  {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    }|
+    COMPARAISON1 oper_inegalite COMPARAISON  {
+        if ($1 != $3) {
+            char error[20];
+            sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
+            erreur_semantique(error);
+            return;
+        }
+    }|
+    COMPARAISON1 {$$ = $1;};
 
 COMPARAISON1:
-    idf |
-    CST_TYPE;
+    idf {
+        int type = type_variable($1);
+
+        if (type == -1) {
+            char error[20];
+            sprintf(error, "Non declaration de l'identificateur %s", $1);
+            erreur_semantique(error);
+            return;
+        }
+
+        $$ = type;
+    }|
+    CST_TYPE {$$ = $1.isFloat;};
     
 INCREMENTATION_COMPTEUR: idf inc {
     $$ = $1;
