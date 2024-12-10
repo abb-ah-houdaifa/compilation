@@ -18,9 +18,9 @@ typedef struct SymboleVariable {
     char* nom;              // Nom de l'entité
     char* code;             // Type (idf, const, etc.)
     bool isFloat;           // vrai => float, sinon => integer
-    char valeur[10];             // Valeur
     bool isConst;           // vrai si constante, faux sinon
     bool isTableau;         // vrai si la variable est un tableau
+    char valeur[10];        // Valeur si c'est une varibale, indice si c'est un tableau
     struct SymboleVariable* suivant;
 } SymboleVariable;
 
@@ -33,6 +33,7 @@ SymboleVariable* rechercher_variable(char* nom);
 void afficher_table_variables();
 bool verifier_double_declaration(char* nom);
 bool verifier_non_declaration(char* nom);
+int type_variable(char* nom);
 bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat);
 int verifier_modification_const(char* nom);
 bool verifier_si_tableau(char* nom);
@@ -104,20 +105,16 @@ bool remplir_variable(char* nom, char* code, bool isFloat, char *valeur, bool is
 
     // idf deja declare
     if (symbole->status) {
-        printf("Erreur sémantique : identificateur '%s' déjà déclaré.\n", nom);
         return false;
     }
 
-    // printf("%s tableau: %d valeur: %s const: %d\n", nom, isTableau, valeur, isConst);
     // remplir les champs
     symbole->status = true;
+    strcpy(symbole->valeur, valeur);
     symbole->isConst = isConst;
     symbole->code = code;
     symbole->isFloat = isFloat;
     symbole->isTableau = isTableau;
-    strcpy(symbole->valeur, valeur);
-
-    // printf("%s tableau: %d valeur: %s const: %d\n", symbole->nom, symbole->isTableau, symbole->valeur, symbole->isConst);
 
     return true;
 }
@@ -126,7 +123,6 @@ bool verifier_double_declaration(char* nom) {
     SymboleVariable* existant = rechercher_variable(nom);
 
     if (existant->status) {
-        printf("Erreur sémantique : identificateur '%s' déjà déclaré.\n", nom);
         return true;
     }
 
@@ -138,14 +134,38 @@ bool verifier_non_declaration(char* nom) {
 
     // si le champ n'est pas rempli => status = 0 = false
     if (!existant->status) {
-        printf("Erreur sémantique : identificateur '%s' non déclaré.\n", nom);
         return true;
     }
 
     return false;
 }
 
-// typeAttenduIsFloat est un boolean qui designe si la valeur affectee au variable est de type float
+// retourne le type de l'entite
+// -1 si l'identificateur n'existe pas
+int type_variable(char* nom) {
+    SymboleVariable* variable = rechercher_variable(nom);
+
+    // verifier l'existance
+    if (!variable->status) {
+        return -1;
+    }
+
+    return variable->isFloat;
+}
+
+// verifier si l'identificateur est un tableau
+int est_tableau(char* nom) {
+    SymboleVariable* variable = rechercher_variable(nom);
+
+    // verifier l'existance
+    if (!variable->status) {
+        return -1;
+    }
+
+    return variable->isTableau;
+}
+
+// typeAttenduIsFloat est un boolean qui decrit le type de la valeur affectee a la variable
 // true => float, false => integer 
 bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat) {
     SymboleVariable* symbole = rechercher_variable(nom);
@@ -156,18 +176,10 @@ bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat) {
 
     // comparer les types
     if (symbole->isFloat != typeAttenduIsFloat) {
-        // extraire le type attendu
-        char* typeAttendu = (symbole->isFloat) ? "FLOAT" : "INTEGER";
-        printf("Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.\n", nom, typeAttendu);
         return false;
     }
 
     return true;
-}
-
-bool type_identificateur(char* nom) {
-    SymboleVariable* entite = rechercher_variable(nom);
-    return entite->isFloat;
 }
 
 // verifier si l'entite est une constante et retourne -1
@@ -207,8 +219,6 @@ int verifier_taille_tableau(char* nom, int index) {
     if (tailleTableau <= index || index < 0) {
         return -1;
     }
-
-    printf("%s entite %d\n",entite->nom, entite->isFloat);
     return entite->isFloat;
 }
 

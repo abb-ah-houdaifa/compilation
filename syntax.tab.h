@@ -35,7 +35,7 @@
 /* "%code requires" blocks.  */
 
 /* Line 1676 of yacc.c  */
-#line 17 "syntax.y"
+#line 18 "syntax.y"
 
     struct entite {
         char *nom;
@@ -87,36 +87,37 @@
      parenthese_ouv = 275,
      parenthese_fer = 276,
      aff = 277,
-     oper_initialisation = 278,
-     double_quote = 279,
-     sym_mul = 280,
-     sym_div = 281,
-     sym_plus = 282,
-     sym_moins = 283,
-     mc_for = 284,
-     mc_do = 285,
-     mc_endfor = 286,
-     mc_if = 287,
-     mc_endif = 288,
-     mc_else = 289,
-     mc_input = 290,
-     mc_write = 291,
-     idf = 292,
-     cst_entier = 293,
-     cst_reel = 294,
-     oper_et = 295,
-     oper_ou = 296,
-     oper_negation = 297,
-     oper_sup_egal = 298,
-     oper_inf_egal = 299,
-     oper_sup = 300,
-     oper_inf = 301,
-     oper_inegalite = 302,
-     oper_egalite = 303,
-     signe_formattage_entier = 304,
-     signe_formattage_reel = 305,
-     err = 306,
-     chaine_caractere = 307
+     inc = 278,
+     oper_initialisation = 279,
+     double_quote = 280,
+     sym_mul = 281,
+     sym_div = 282,
+     sym_plus = 283,
+     sym_moins = 284,
+     mc_for = 285,
+     mc_do = 286,
+     mc_endfor = 287,
+     mc_if = 288,
+     mc_endif = 289,
+     mc_else = 290,
+     mc_input = 291,
+     mc_write = 292,
+     idf = 293,
+     cst_entier = 294,
+     cst_reel = 295,
+     oper_et = 296,
+     oper_ou = 297,
+     oper_negation = 298,
+     oper_sup_egal = 299,
+     oper_inf_egal = 300,
+     oper_sup = 301,
+     oper_inf = 302,
+     oper_inegalite = 303,
+     oper_egalite = 304,
+     signe_formattage_entier = 305,
+     signe_formattage_reel = 306,
+     err = 307,
+     chaine_caractere = 308
    };
 #endif
 
@@ -127,7 +128,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 38 "syntax.y"
+#line 39 "syntax.y"
 
     int entier;
     float real;
@@ -140,7 +141,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 144 "syntax.tab.h"
+#line 145 "syntax.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

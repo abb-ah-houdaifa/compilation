@@ -115,6 +115,7 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 
 "=" {col += yyleng; inserer_mots_separateurs(1,yytext); return oper_initialisation;}
 "<--" {col += yyleng; inserer_mots_separateurs(1,yytext); return aff;}
+"++" {col += yyleng; inserer_mots_separateurs(1,yytext); return inc;}
 
 "," {col += yyleng; inserer_mots_separateurs(1,yytext); return vg;}
 ";" {col += yyleng; inserer_mots_separateurs(1,yytext); return pvg;}

@@ -9,6 +9,7 @@ int col = 1;
 
 // Déclaration de la fonction d'erreur
 void yyerror(const char *msg);
+void erreur_semantique(const char *msg);
 %}
 
 // la structure entite est utilisee lors de la declaration des variables
@@ -46,7 +47,7 @@ void yyerror(const char *msg);
 }
 
 %token mc_import mc_io mc_lang mc_isil mc_programme mc_debut mc_dec mc_fin mc_final <str> mc_int <str> mc_float
-%token point pvg vg separateur crochet_ouv crochet_fer parenthese_ouv parenthese_fer aff oper_initialisation double_quote
+%token point pvg vg separateur crochet_ouv crochet_fer parenthese_ouv parenthese_fer aff inc oper_initialisation double_quote
 %token <str> sym_mul sym_div sym_plus sym_moins
 %token mc_for mc_do mc_endfor mc_if mc_endif mc_else mc_input mc_write
 %token <str> idf <entier> cst_entier <real> cst_reel
@@ -61,6 +62,7 @@ void yyerror(const char *msg);
 %type <entite> List_Idf_V_T V_T B LIST_AFF Affect_FINALE VARIABLE
 %type <tableau> SUITE_IDF
 %type <constante> CST_TYPE EXPRESSION_1 EXPRESSION_2 EXPRESSION_ARITHMETIQUE
+%type <str> INCREMENTATION_COMPTEUR INITIALISATION_COMPTEUR
 %%
 
 S: Block_LIB Block_Prog  { printf("Programme Correcte.\n"); YYACCEPT; };
@@ -93,14 +95,13 @@ Block_DEC_Var: Type List_Idf_V_T pvg {
 
     // parcourir la liste des identificateur declares
     while (ptr != NULL) {
-        
+
         //verifier l'incompatibilite de type en cas d'affectation d'une valeur initiale
         // si isFloat = -1 alors il n'y a pas une affectation
         if ((ptr->isFloat != -1) && (ptr->isFloat != $1)) {
-
             char *typeAttendu = ($1) ? "Float" : "Integer";
             printf("Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.\n", ptr->nom, typeAttendu);
-            YYABORT;
+            return;
         }
 
         // verifier si l'idf est un tableau
@@ -113,7 +114,7 @@ Block_DEC_Var: Type List_Idf_V_T pvg {
 
             // verifier s'il est deja declare
             if (status == 0) {
-                YYABORT;
+                return;
             }
         } 
         // la variable est simple idf
@@ -121,21 +122,20 @@ Block_DEC_Var: Type List_Idf_V_T pvg {
             // verifier si aucune valeur est affecte a l'idf
             if (strcmp(ptr->valeur, " ") == 0) {
                 // l'inserer dans la table des variables sans valeur
-                int status = remplir_variable(ptr->nom, "identificateur", ptr->isFloat, NULL, 0, 0);
+                int status = remplir_variable(ptr->nom, "identificateur", $1, "", 0, 0);
 
                 // verifier s'il est deja declare
                 if (status == 0) {
-                    YYABORT;
+                    return;
                 }
             }
             // une valeur initiale est affectee a l'idf
             else {
-                //printf("%s tableau %d valeur %s\n", ptr->nom, ptr->isTableau, ptr->valeur);
                 int status = remplir_variable(ptr->nom, "identificateur", ptr->isFloat, ptr->valeur, 0, 0);
 
                 // verifier s'il est deja declare
                 if (status == 0) {
-                    YYABORT;
+                    return;
                 }
             }
         }
@@ -192,10 +192,11 @@ B:
     };
 
 // Declaration d'une constante
-
+// le meme processus que celui des variables
 Block_DEC_Const: mc_final Type LIST_AFF pvg {
     // garder l'@ du premier identificateur apres le mot cle du type
     struct entite* ptr = &($3);
+    char error[20];
 
     while (ptr != NULL) {
         // comparer la valeur recue et le type declare
@@ -203,14 +204,15 @@ Block_DEC_Const: mc_final Type LIST_AFF pvg {
             
             // incompatible
             char *typeAttendu = ($2) ? "Float" : "Integer";
-            printf("Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.\n", ptr->nom, typeAttendu);
-            YYABORT;
+            sprintf(error, "Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.", ptr->nom, typeAttendu);
+            erreur_semantique(error);
+            return;
         }else {
             int status = remplir_variable(ptr->nom, "identificateur", ptr->isFloat, ptr->valeur, 1, 0);
 
             // verifier s'il est deja declare
             if (status == 0) {
-                YYABORT;
+                return;
             }
         }
 
@@ -241,6 +243,7 @@ Affect_FINALE: idf oper_initialisation CST_TYPE {
     strcpy($$.valeur, $3.valeur);
 };
 
+// les constantes reelles et entiere
 CST_TYPE :	
     cst_entier {
         $$.isFloat = 0;
@@ -251,6 +254,7 @@ CST_TYPE :
         gcvt($1, 10, $$.valeur); // copier la valeur reel dans une chaine de caractere
     };
 
+// Le mot cle qui definie le type Integer, Float
 // Equivalent a isFloat
 Type: 
     mc_float {$$ = 1;} | 
@@ -270,58 +274,25 @@ INSTRUCTION:
 
 INSTRUCTION_AFFECTATION: VARIABLE aff EXPRESSION_ARITHMETIQUE pvg {
     char error[20];
-
-    // verifier si l'identificateur est une constante
-    int type = verifier_modification_const($1.nom);
-
-    if (type == -1) {
-        sprintf(error, "Modification de la taille d'une constante %s", $1);
-        yyerror(error);
-        YYABORT;
+    
+    if (!$1.isTableau) {
+        if (verifier_modification_const($1.nom) == -1) {
+            sprintf(error, "Modification de la taille d'une constante %s", $1);
+            erreur_semantique(error);
+            return;
+        }
     }
-
+    
+    int type = type_variable($1.nom);
     // verifier la non compatibilite de type
     if (type != $3.isFloat) {
         char* typeAttendu = type ? "Float" : "Integer";
         char* typeRecu = $3.isFloat ? "Float" : "Integer";
 
         sprintf(error, "Non compatibilite de type, type attendu (l'identificateur %s): %s, type recu: %s", $1.nom, typeAttendu, typeRecu);
-        yyerror(error);
-        YYABORT;
+        erreur_semantique(error);
+        return;
     }
-    /*
-    int taille;
-    // si l'entite est un tableau
-    if ($2.tableau) {
-        // verifier le depassement de la taille
-        taille = verifier_taille_tableau($1, $2.index);
-
-        // traitement des erreurs semantiques
-        if (taille == -1) {
-            sprintf(error, "Depassement de la taille du tableau %s", $1);
-            yyerror(error);
-            YYABORT;
-        } else if (taille == -2) {
-            sprintf(error, "Variable %s n'est pas un tableau", $1);
-            yyerror(error);
-            YYABORT;
-        }
-    } else {
-        taille = verifier_modification_const($1);
-
-        // traitements des erreurs semantiques
-        if (taille == -2) {
-            sprintf(error, "Variable %s est un tableau", $1);
-            yyerror(error);
-            YYABORT;
-        }
-        if (taille == -1) {
-            sprintf(error, "Modification de la taille d'une constante %s", $1);
-            yyerror(error);
-            YYABORT;
-        }
-    }
-    */
 };
 
 EXPRESSION_ARITHMETIQUE: 
@@ -331,8 +302,8 @@ EXPRESSION_ARITHMETIQUE:
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
         $$.isFloat = $1.isFloat; // passer la valeur au non-terminale suivant
@@ -344,8 +315,8 @@ EXPRESSION_ARITHMETIQUE:
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
         $$.isFloat = $1.isFloat; // passer la valeur au non-terminale suivant
@@ -363,8 +334,8 @@ EXPRESSION_1:
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
         $$.isFloat = $1.isFloat; // passer la valeur au non-terminale suivant
@@ -376,14 +347,14 @@ EXPRESSION_1:
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
         // division par zero
         if (strcmp($3.valeur, "0") == 0) {
             yyerror("Division par 0");
-            YYABORT;            
+            return;            
         }
 
         $$.isFloat = $1.isFloat; // passer la valeur au non-terminale suivant
@@ -413,8 +384,8 @@ VARIABLE: idf SUITE_IDF {
     // non declaration
     if (verifier_non_declaration($1)) {
         sprintf(error, "Non declaration de l'identificateur %s", $1);
-        yyerror(error);
-        YYABORT;
+        erreur_semantique(error);
+        return;
     };
 
     strcpy($$.nom, $1);
@@ -427,27 +398,28 @@ VARIABLE: idf SUITE_IDF {
         // traitement des erreurs semantiques
         if (taille == -1) {
             sprintf(error, "Depassement de la taille du tableau %s", $1);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         } else if (taille == -2) {
             sprintf(error, "Variable %s n'est pas un tableau", $1);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
+        $$.isTableau = 1;
+
         $$.isFloat = taille;
-        printf("isFloat : %d\n", taille);
     } else {
         taille = verifier_modification_const($1);
 
         // verifier si l'identificateur est un tableau
         if (verifier_si_tableau($1)) {
             sprintf(error, "Variable %s est un tableau", $1);
-            yyerror(error);
-            YYABORT;
+            erreur_semantique(error);
+            return;
         }
 
-        $$.isFloat = type_identificateur($1);
+        $$.isFloat = type_variable($1);
     }
 };
 
@@ -460,11 +432,55 @@ SUITE_IDF:
         $$.tableau = 0; // mettre tableau a faux
     };
 
+// on suppose que la variable de la partie initialisation doit figurer dans la partie incrementation
 INSTRUCTION_FOR: mc_for parenthese_ouv PARAMETRE_BOUCLE parenthese_fer mc_do BLOC_INSTRUCTIONS mc_endfor;
 
-PARAMETRE_BOUCLE: INITIALISATION_COMPTEUR pvg CONDITION pvg INCREMENTATION_COMPTEUR;
+PARAMETRE_BOUCLE: INITIALISATION_COMPTEUR pvg CONDITION pvg INCREMENTATION_COMPTEUR {
+    if (strcmp($1, $5) != 0) {
+        char error[20];
+        sprintf(error, "La varaible %s de la partie initialisation doit etre incremente", $1);
+        erreur_semantique(error);
+        return;
+    }
+};
 
-INITIALISATION_COMPTEUR: idf aff EXPRESSION_ARITHMETIQUE;
+INITIALISATION_COMPTEUR: idf aff EXPRESSION_ARITHMETIQUE {
+    char error[20];
+    int type = type_variable($1);
+
+    // verifier l'inexistance
+    if (type == -1) {
+        sprintf(error, "Non declaration de l'identificateur %s", $1);
+        erreur_semantique(error);
+        return;
+    }
+    
+    // verifier s'il s'agit d'un tableau
+    if (est_tableau($1)) {
+        sprintf(error, "Compteur %s ne doit pas etre un tableau", $1);
+        erreur_semantique(error);
+        return;
+    }
+
+    // le compteur doit etre un Integer
+    if (type == 1) {
+        sprintf(error, "Compteur %s doit etre un Integer", $1);
+        erreur_semantique(error);
+        return;
+    }
+
+    // l'affectation recue est de type Float
+    if (type != $3.isFloat) {
+        char* typeAttendu = type ? "Float" : "Integer";
+        char* typeRecu = $3.isFloat ? "Float" : "Integer";
+
+        sprintf(error, "Non compatibilite de type, type attendu (l'identificateur %s): %s, type recu: %s", $1, typeAttendu, typeRecu);
+        erreur_semantique(error);
+        return;
+    }
+
+    $$ = $1; 
+};
 
 CONDITION: CONDITION1 oper_ou CONDITION |
     CONDITION1;
@@ -491,8 +507,9 @@ COMPARAISON1:
     idf |
     CST_TYPE;
     
-INCREMENTATION_COMPTEUR: 
-    idf sym_plus sym_plus;
+INCREMENTATION_COMPTEUR: idf inc {
+    $$ = $1;
+};
 
 INSTRUCTION_IF: 
     mc_if parenthese_ouv CONDITION parenthese_fer mc_do BLOC_INSTRUCTIONS mc_endif |
@@ -522,4 +539,8 @@ yywrap () {}
 
 void yyerror(const char *msg) {
     printf("Erreur syntaxique : %s à la ligne %d, colonne %d\n", msg, nb_ligne, col);
+}
+
+void erreur_semantique(const char *msg) {
+    printf("Erreur semantique : %s à la ligne %d, colonne %d\n", msg, nb_ligne, col);
 }

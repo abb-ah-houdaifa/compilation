@@ -2,34 +2,20 @@ import ISIL.lang;
 
 Programme ISIL_A
 PDec
-    Integer E1 = 2 | E2 = 3 | E3 = (-06);
-    Float E4 = 9.234;
+    Integer E1 = 2 | E2 = 3 | E3 = (-06) | I;
+    Float E4 = 92.34;
     Integer E5[8];
     final Integer E6 = 9;
-    Float K = (-9.2);
+    final Float K = (-9.2);
 InDebut
 
 /*
     commentaire
 */
 
-E1 <-- E6;
 
-For(I <-- 2; I < 6; I++) DO
+For(I <-- 1; I < 9.2; I++) DO
 ENDFOR
 
-// commentaire
-
-# commentaire
-
-IF ((I < 4) && !(X > 7)) DO
-ELSE
-    IF (X < 5) DO
-    ELSE
-        For (I <-- 1; I < 6; I++) DO
-            Input("%d", I);
-        ENDFOR
-    ENDIF
-ENDIF
 
 InFin.
