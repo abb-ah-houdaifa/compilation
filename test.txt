@@ -2,20 +2,10 @@ import ISIL.lang;
 
 Programme ISIL_A
 PDec
-    Integer E1 = 2 | E2 = 3 | E3 = (-06) | I;
-    Float E4 = 92.34;
-    Integer E5[8];
-    final Integer E6 = 9;
-    final Float K = (-9.2);
+    Integer T[2] | E = 2;
+    final Float E4 = 92.2;
+
 InDebut
 
-/*
-    commentaire
-*/
-
-
-For(I <-- 1; I < 9 && I > 3; R++) DO
-ENDFOR
-
-
+    T[1] <-- 1 * 2 / E + 3;
 InFin.

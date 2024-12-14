@@ -7,6 +7,12 @@
 int nb_ligne = 1;
 int col = 1;
 
+// Declaration des varibales globales
+int isFloat, typeRecuIsFloat, indiceTableau;
+int isTableau;
+char valeur[10];
+char nom[18];
+
 // Déclaration de la fonction d'erreur
 void yyerror(const char *msg);
 void erreur_semantique(const char *msg);
@@ -21,13 +27,6 @@ void erreur_semantique(const char *msg);
         int isFloat;
         int isTableau;
         char valeur[10];
-        int index;
-        struct entite* suivant;
-    };
-
-    struct tableau {
-        int tableau;
-        int index;
     };
 
     struct constante {
@@ -42,7 +41,6 @@ void erreur_semantique(const char *msg);
     char* str;
     // definir un nouveau type complexe (struct)
     struct entite entite;
-    struct tableau tableau;
     struct constante constante;
 }
 
@@ -56,11 +54,12 @@ void erreur_semantique(const char *msg);
 %token signe_formattage_entier signe_formattage_reel
 %token err
 %token chaine_caractere
-%start S
 %right aff
+
+%start S
+
 %type <entier> Type COMPARAISON COMPARAISON1
-%type <entite> List_Idf_V_T V_T B LIST_AFF Affect_FINALE VARIABLE
-%type <tableau> SUITE_IDF
+%type <entite> VARIABLE
 %type <constante> CST_TYPE EXPRESSION_1 EXPRESSION_2 EXPRESSION_ARITHMETIQUE
 %type <str> INCREMENTATION_COMPTEUR INITIALISATION_COMPTEUR
 %%
@@ -73,8 +72,19 @@ Block_LIB:
     ;
 
 NOM_BIB: 
-    mc_lang | 
-    mc_io;
+    mc_lang {
+        // la bibliotheque est deja declare
+        if (!declarer_biblio_lang()) {
+            erreur_semantique("La bibliotheque lang est deja declaree");
+            return;
+        }
+    }| 
+    mc_io {
+        if (!declarer_biblio_io()) {
+            erreur_semantique("La bibliotheque io est deja declaree");
+            return;
+        }
+    };
 
 // LA STRUCTURE DU PROGRAMME
 
@@ -88,177 +98,93 @@ Block_DEC :
 	;
 
 // Declaration d'une variable
-
-Block_DEC_Var: Type List_Idf_V_T pvg {
-    // garder l'@ du premier identificateur apres le mot cle du type
-    struct entite* ptr = &($2);
-
-    // parcourir la liste des identificateur declares
-    while (ptr != NULL) {
-
-        //verifier l'incompatibilite de type en cas d'affectation d'une valeur initiale
-        // si isFloat = -1 alors il n'y a pas une affectation
-        if ((ptr->isFloat != -1) && (ptr->isFloat != $1)) {
-            char *typeAttendu = ($1) ? "Float" : "Integer";
-            printf("Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.\n", ptr->nom, typeAttendu);
-            return;
-        }
-
-        // verifier si l'idf est un tableau
-        if (ptr->isTableau) {
-            char taille[10]; // convertir la taille du tableau (index) en une chaine de caracteres
-            sprintf(taille, "%d", ptr->index);
-
-            // l'inserer dans la table des tableaux
-            int status = remplir_variable(ptr->nom, "identificateur", $1, taille, 0, 1);
-
-            // verifier s'il est deja declare
-            if (status == 0) {
-                return;
-            }
-        } 
-        // la variable est simple idf
-        else {
-            // verifier si aucune valeur est affecte a l'idf
-            if (strcmp(ptr->valeur, " ") == 0) {
-                // l'inserer dans la table des variables sans valeur
-                int status = remplir_variable(ptr->nom, "identificateur", $1, "", 0, 0);
-
-                // verifier s'il est deja declare
-                if (status == 0) {
-                    return;
-                }
-            }
-            // une valeur initiale est affectee a l'idf
-            else {
-                int status = remplir_variable(ptr->nom, "identificateur", ptr->isFloat, ptr->valeur, 0, 0);
-
-                // verifier s'il est deja declare
-                if (status == 0) {
-                    return;
-                }
-            }
-        }
-        ptr = ptr->suivant;
-    }
-};
+Block_DEC_Var: Type List_Idf_V_T pvg;
 
 List_Idf_V_T: 
-    V_T separateur List_Idf_V_T {
-        // creer le chainage
-        $$.suivant = &$3;
-    } |
-    V_T {
-        // copier les infos necessaire
-        // si l'idf est le dernier dans la liste de declaration ou il est tout seul
-        $$.nom = strdup($1.nom);
-        $$.isFloat = $1.isFloat;
-        $$.isTableau = $1.isTableau;
-        $$.index = $1.index;
-        strcpy($$.valeur, $1.valeur);
-        $$.suivant = NULL;
-    };
+    V_T separateur List_Idf_V_T |
+    V_T;
 
 V_T: idf B {
-    // copier le nom de l'entite
-    $$.nom = strdup($1);
+    char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
+    if (isFloat != typeRecuIsFloat) {
+        char error[20];
+        sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
+        erreur_semantique(error);
+        return;
+    }
 
-    // copier les champs necessaires
-    $$.isFloat = $2.isFloat;
-    $$.isTableau = $2.isTableau;
-    $$.index = $2.index;
-    strcpy($$.valeur, $2.valeur);
+    int status = remplir_variable($1, "identificateur", isFloat, valeur, 0, isTableau);
+
+    if (status == 0) {
+        char error[20];
+        sprintf(error, "Double declaration de l'identificateur: %s", $1);
+        erreur_semantique(error);
+        return;
+    }
 };
 
 // la partie qui suit le nom de la variable elle peut prendre ([] (tableau), = (initialisation), epselon (variable non initialisee))
 B: 
     crochet_ouv cst_entier crochet_fer {
-        // cas de declaration d'un tableau
-        $$.isTableau = 1;
-        $$.index = $2;
-        $$.isFloat = -1;
+        isTableau = 1;
+        sprintf(valeur, "%d", $2);
+        
     } | 
     oper_initialisation CST_TYPE {
-        // cas d'initialisation d'une variable simple
-        $$.isFloat = $2.isFloat;
-        $$.isTableau = 0;
-        strcpy($$.valeur, $2.valeur);
-    }| {
-        // cas d'une declaration sans initialisation
-        $$.isTableau = 0;
-        $$.isFloat = -1; // la valeur de la variable n'est pas initialiser encore
-            // -1 veut dire qu'on n'a pas besoin de comparer le type de la variable
-        strcpy($$.valeur, " "); // 
+        isTableau = 0;
+    } | {
+        isTableau = 0;
+        strcpy(valeur, " ");
     };
 
 // Declaration d'une constante
 // le meme processus que celui des variables
-Block_DEC_Const: mc_final Type LIST_AFF pvg {
-    // garder l'@ du premier identificateur apres le mot cle du type
-    struct entite* ptr = &($3);
-    char error[20];
-
-    while (ptr != NULL) {
-        // comparer la valeur recue et le type declare
-        if ($2 != ptr->isFloat) {
-            
-            // incompatible
-            char *typeAttendu = ($2) ? "Float" : "Integer";
-            sprintf(error, "Erreur sémantique : type incompatible pour '%s'. Attendu '%s'.", ptr->nom, typeAttendu);
-            erreur_semantique(error);
-            return;
-        }else {
-            int status = remplir_variable(ptr->nom, "identificateur", ptr->isFloat, ptr->valeur, 1, 0);
-
-            // verifier s'il est deja declare
-            if (status == 0) {
-                return;
-            }
-        }
-
-        ptr = ptr->suivant;
-    }
-};				
+Block_DEC_Const: mc_final Type LIST_AFF pvg;				
 
 LIST_AFF : 
-    Affect_FINALE {
-        // copier les infos necessaire
-        // si l'idf est le dernier dans la liste de declaration ou il est tout seul
-        $$.nom = strdup($1.nom);
-        $$.isFloat = $1.isFloat;
-        $$.isTableau = $1.isTableau;
-        $$.index = $1.index;
-        strcpy($$.valeur, $1.valeur);
-        $$.suivant = NULL;
-    }|
-    Affect_FINALE separateur LIST_AFF {
-        $$.suivant = &$3;
-    };
+    Affect_FINALE |
+    Affect_FINALE separateur LIST_AFF;
 
 Affect_FINALE: idf oper_initialisation CST_TYPE {
-    $$.nom = $1;
-    
-    $$.isFloat = $3.isFloat;
-    $$.isTableau = 0;
-    strcpy($$.valeur, $3.valeur);
+    char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
+    if (isFloat != typeRecuIsFloat) {
+        char error[20];
+        sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
+        erreur_semantique(error);
+        return;
+    }
+    int status = remplir_variable($1, "identificateur", isFloat, valeur, 1, 0);
+
+    if (status == 0) {
+        char error[20];
+        sprintf(error, "Double declaration de l'identificateur: %s", $1);
+        erreur_semantique(error);
+        return;
+    }
 };
 
 // les constantes reelles et entiere
 CST_TYPE :	
     cst_entier {
+        typeRecuIsFloat = 0;
         $$.isFloat = 0;
-        sprintf($$.valeur, "%d", $1); // copier la valeur entiere dans une chaine de caractere
+
+        sprintf(valeur, "%d", $1); // copier la valeur entiere dans une chaine de caractere
+        strcpy($$.valeur, valeur);
     } |
     cst_reel {
+        typeRecuIsFloat = 1;
         $$.isFloat = 1;
-        gcvt($1, 10, $$.valeur); // copier la valeur reel dans une chaine de caractere
+
+        gcvt($1, 10, valeur); // copier la valeur reelle dans une chaine de caractere
+        strcpy($$.valeur, valeur);
     };
 
 // Le mot cle qui definie le type Integer, Float
 // Equivalent a isFloat
 Type: 
-    mc_float {$$ = 1;} | 
-    mc_int {$$ = 0;};
+    mc_float {isFloat = 1;} | 
+    mc_int {isFloat = 0;};
 
 // PARTIE DES INSTRUCTIONS
 
@@ -277,13 +203,13 @@ INSTRUCTION_AFFECTATION: VARIABLE aff EXPRESSION_ARITHMETIQUE pvg {
     
     if (!$1.isTableau) {
         if (verifier_modification_const($1.nom) == -1) {
-            sprintf(error, "Modification de la taille d'une constante %s", $1);
+            sprintf(error, "Modification de la valeur d'une constante %s", $1);
             erreur_semantique(error);
             return;
         }
     }
     
-    int type = type_variable($1.nom);
+    int type = $1.isFloat;
     // verifier la non compatibilite de type
     if (type != $3.isFloat) {
         char* typeAttendu = type ? "Float" : "Integer";
@@ -297,6 +223,11 @@ INSTRUCTION_AFFECTATION: VARIABLE aff EXPRESSION_ARITHMETIQUE pvg {
 
 EXPRESSION_ARITHMETIQUE: 
     EXPRESSION_1 sym_plus EXPRESSION_ARITHMETIQUE {
+        if (!verifier_biblio_lang_declaree()) {
+            erreur_semantique("La bibliotheque lang n'est pas declaree");
+            return;
+        }
+
         // verifier la non-compatibilite de type
         char error[20];
 
@@ -367,7 +298,7 @@ EXPRESSION_1:
 
 EXPRESSION_2: 
     parenthese_ouv EXPRESSION_ARITHMETIQUE parenthese_fer {
-        $$.isFloat = $2.isFloat;
+        $$ = $2;
         strcpy($$.valeur, $2.valeur);
     }|
     CST_TYPE {
@@ -388,12 +319,11 @@ VARIABLE: idf SUITE_IDF {
         return;
     };
 
-    strcpy($$.nom, $1);
-    int taille;
     // si l'entite est un tableau
-    if ($2.tableau) {
+    if (isTableau == 1) {
+        int taille;
         // verifier le depassement de la taille
-        taille = verifier_taille_tableau($1, $2.index);
+        taille = verifier_taille_tableau($1, indiceTableau);
 
         // traitement des erreurs semantiques
         if (taille == -1) {
@@ -406,11 +336,8 @@ VARIABLE: idf SUITE_IDF {
             return;
         }
 
-        $$.isTableau = 1;
-
         $$.isFloat = taille;
     } else {
-        taille = verifier_modification_const($1);
 
         // verifier si l'identificateur est un tableau
         if (verifier_si_tableau($1)) {
@@ -421,15 +348,18 @@ VARIABLE: idf SUITE_IDF {
 
         $$.isFloat = type_variable($1);
     }
+
+    strcpy($$.nom, $1);
+    $$.isTableau = isTableau;
 };
 
 SUITE_IDF: 
     crochet_ouv cst_entier crochet_fer {
-        $$.tableau = 1; // mettre tableau a vrai
-        $$.index = $2; // remplir la taille du tableau
+        isTableau = 1;
+        indiceTableau = $2;
     } 
     | {
-        $$.tableau = 0; // mettre tableau a faux
+        isTableau = 0; // mettre tableau a faux
     };
 
 // on suppose que la variable de la partie initialisation doit figurer dans la partie incrementation
@@ -546,12 +476,13 @@ COMPARAISON:
     COMPARAISON1 {$$ = $1;};
 
 COMPARAISON1:
-    idf {
-        int type = type_variable($1);
+    VARIABLE {
+        // ajouter le cas d'un tableau
+        int type = type_variable($1.nom);
 
         if (type == -1) {
             char error[20];
-            sprintf(error, "Non declaration de l'identificateur %s", $1);
+            sprintf(error, "Non declaration de l'identificateur %s", $1.nom);
             erreur_semantique(error);
             return;
         }
@@ -584,7 +515,7 @@ SIGNE_FORMATTAGE: signe_formattage_entier | signe_formattage_reel;
 
 int main() {
     yyparse();
-    // afficher_table_separateur_mot();
+    afficher_table_separateur_mot();
     afficher_table_variables();
     return 0;
 }

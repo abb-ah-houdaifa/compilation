@@ -24,6 +24,32 @@ typedef struct SymboleVariable {
 bool biblio_io_declaree = false;
 bool biblio_lang_declaree = false;
 
+// si la bibliotheque est deja declare retourner faux
+bool declarer_biblio_io() {
+    if (biblio_io_declaree)
+        return false;
+
+    biblio_io_declaree = true;
+    return true;
+}
+
+// si la bibliotheque est deja declare retourner faux
+bool declarer_biblio_lang() {
+    if (biblio_lang_declaree)
+        return false;
+
+    biblio_lang_declaree = true;
+    return true;
+}
+
+bool verifier_biblio_io_declaree() {
+    return biblio_io_declaree;
+}
+
+bool verifier_biblio_lang_declaree() {
+    return biblio_lang_declaree;
+}
+
 SymboleVariable* tete_variables = NULL; // Pointeur vers la tête de la liste des variables simples
 SymboleVariable* queue_variables = NULL; // Pointeur vers la queue de la liste pour faciliter l'ajout
 
@@ -225,8 +251,8 @@ int verifier_taille_tableau(char* nom, int index) {
 void afficher_table_variables() {
     SymboleVariable* ptr = tete_variables;
 
-    printf("\n\t/***************Table des symboles des variables******************/\n");
-    printf("\t________________________________________________________________________________________________\n");
+    printf("\n\t/******************Table des symboles des variables******************/\n");
+    printf("\t_________________________________________________________________________________________________\n");
     printf("\t| NomEntite\t    |   CodeEntite   |  TypeEntite  | ValeurEntite |  Constante |    Tableau    |\n");
     printf("\t|___________________|________________|______________|______________|____________|_______________|\n");
     while (ptr != NULL) {
@@ -239,7 +265,7 @@ void afficher_table_variables() {
         ptr = ptr->suivant;
     }
 
-printf("\t|___________________|________________|______________|______________|____________|_______________|\n");    printf("\n\n");
+    printf("\t|___________________|________________|______________|______________|____________|_______________|\n");    printf("\n");
 }
 
 typedef struct TypeSM{
@@ -321,7 +347,7 @@ void inserer_mots_separateurs(bool isSeparateur, char nom[]) {
 void afficher_table_separateur_mot() {
     TypeSM* ptr = tete_mots_cles;
 
-    printf("\n/***************Table des symboles mots cles*************/\n");
+    printf("\n\t/***************Table des symboles mots cles*************/\n");
     printf("\t___________________________\n");
     printf("\t| NomEntite |  CodeEntite | \n");
     printf("\t|___________|_____________|\n");
@@ -332,11 +358,11 @@ void afficher_table_separateur_mot() {
     }
 
     printf("\t|_________________________|\n");
-    printf("\n\n");
+    printf("\n");
 
     ptr = tete_separateurs;
 
-    printf("\n/***************Table des symboles separateurs*************/\n");
+    printf("\t/***************Table des symboles separateurs*************/\n");
     printf("\t___________________________\n");
     printf("\t| NomEntite |  CodeEntite | \n");
     printf("\t|___________|_____________|\n");

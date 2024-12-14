@@ -35,20 +35,13 @@
 /* "%code requires" blocks.  */
 
 /* Line 1676 of yacc.c  */
-#line 18 "syntax.y"
+#line 24 "syntax.y"
 
     struct entite {
         char *nom;
         int isFloat;
         int isTableau;
         char valeur[10];
-        int index;
-        struct entite* suivant;
-    };
-
-    struct tableau {
-        int tableau;
-        int index;
     };
 
     struct constante {
@@ -59,7 +52,7 @@
 
 
 /* Line 1676 of yacc.c  */
-#line 63 "syntax.tab.h"
+#line 56 "syntax.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -128,20 +121,19 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 39 "syntax.y"
+#line 38 "syntax.y"
 
     int entier;
     float real;
     char* str;
     // definir un nouveau type complexe (struct)
     struct entite entite;
-    struct tableau tableau;
     struct constante constante;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 145 "syntax.tab.h"
+#line 137 "syntax.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
