@@ -35,7 +35,7 @@
 /* "%code requires" blocks.  */
 
 /* Line 1676 of yacc.c  */
-#line 24 "syntax.y"
+#line 32 "syntax.y"
 
     struct entite {
         char *nom;
@@ -121,7 +121,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 38 "syntax.y"
+#line 46 "syntax.y"
 
     int entier;
     float real;

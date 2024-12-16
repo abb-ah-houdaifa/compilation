@@ -1,11 +1,20 @@
 import ISIL.lang;
+import ISIL.io;
 
 Programme ISIL_A
 PDec
     Integer T[2] | E = 2;
-    final Float E4 = 92.2;
+    Float E4 = 92.2;
 
 InDebut
-
     T[1] <-- 1 * 2 / E + 3;
+
+    Input("%d%d%f", T[1], E, E4);
+    Input("%d",E);
+
+    Write("Hello fdasjklfas \n");
+
+    IF (E < E4) DO
+    ENDIF;
+    
 InFin.

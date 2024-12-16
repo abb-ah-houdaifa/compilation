@@ -19,7 +19,7 @@ COMMENTAIRE1 #.*
 COMMENTAIRE2 \/\/.*
 COMMENTAIRE3 "/*"(.|\n)*"*/"
 COMMENTAIRE {COMMENTAIRE1}|{COMMENTAIRE2}|{COMMENTAIRE3}
-CHAINE_CARACTERE (^[\"\n])+
+CHAINE_CARACTERE ({lettre}|{chiffre}|[*\\/:_$+-])*
 
 %%
 import      {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_import; };
@@ -90,26 +90,6 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 
 \" return double_quote;
 
-{CHAINE_CARACTERE} {
-    col += yyleng; 
-    yylval.str = strdup(yytext); 
-    printf("%s", yytext); 
-    return chaine_caractere;
-};
-
-{COMMENTAIRE} {
-    int i;
-    // parcourir la chaine pour localiser les sauts de ligne
-    for (i = 0; i < yyleng; i++) {
-        if (yytext[i] == '\n') {
-            nb_ligne++;
-            col = 1;
-        } else {
-            col++;
-        }
-    }
-};
-
 "+" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_plus;}
 "-" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_moins;}
 
@@ -148,6 +128,23 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 
 \n {nb_ligne++; col = 1;}
 [ \t] {col += yyleng;}
+
+{COMMENTAIRE} {
+    int i;
+    // parcourir la chaine pour localiser les sauts de ligne
+    for (i = 0; i < yyleng; i++) {
+        if (yytext[i] == '\n') {
+            nb_ligne++;
+            col = 1;
+        } else {
+            col++;
+        }
+    }
+};
+
+{CHAINE_CARACTERE} {
+    col += yyleng; return chaine_caractere; 
+}
 
 . {printf("Erreur lexicale a la ligne %d dans la chaine %s\n", nb_ligne, yytext); return err;}
 %%

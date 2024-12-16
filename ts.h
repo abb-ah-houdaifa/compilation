@@ -190,7 +190,6 @@ int est_tableau(char* nom) {
 
     return variable->isTableau;
 }
-
 // typeAttenduIsFloat est un boolean qui decrit le type de la valeur affectee a la variable
 // true => float, false => integer 
 bool verifier_type_compatible(char* nom, bool typeAttenduIsFloat) {

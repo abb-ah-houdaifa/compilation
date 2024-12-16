@@ -13,14 +13,22 @@ int isTableau;
 char valeur[10];
 char nom[18];
 
+// variable globale pour afficher les erreurs
+char error[20];
+
+// varaibles globles pour les instructions d'entree/sortie
+int cpt_signe_format = 0;
+int cpt_idf_ES = 0;
+int list_signe_format[20];
+int list_type_idf_ES[20];
+
 // Déclaration de la fonction d'erreur
 void yyerror(const char *msg);
 void erreur_semantique(const char *msg);
 %}
 
-// la structure entite est utilisee lors de la declaration des variables
-// elle contient un pointeur pour representer le chainage lors d'une declaration de plusieurs variables sur une meme ligne
-// exemple: Integer I1, I2, I3
+// la structure entite est utilisee pour representer une entite
+
 %code requires {
     struct entite {
         char *nom;
@@ -107,7 +115,6 @@ List_Idf_V_T:
 V_T: idf B {
     char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
     if (isFloat != typeRecuIsFloat) {
-        char error[20];
         sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
         erreur_semantique(error);
         return;
@@ -116,7 +123,6 @@ V_T: idf B {
     int status = remplir_variable($1, "identificateur", isFloat, valeur, 0, isTableau);
 
     if (status == 0) {
-        char error[20];
         sprintf(error, "Double declaration de l'identificateur: %s", $1);
         erreur_semantique(error);
         return;
@@ -128,7 +134,6 @@ B:
     crochet_ouv cst_entier crochet_fer {
         isTableau = 1;
         sprintf(valeur, "%d", $2);
-        
     } | 
     oper_initialisation CST_TYPE {
         isTableau = 0;
@@ -148,7 +153,6 @@ LIST_AFF :
 Affect_FINALE: idf oper_initialisation CST_TYPE {
     char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
     if (isFloat != typeRecuIsFloat) {
-        char error[20];
         sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
         erreur_semantique(error);
         return;
@@ -156,7 +160,6 @@ Affect_FINALE: idf oper_initialisation CST_TYPE {
     int status = remplir_variable($1, "identificateur", isFloat, valeur, 1, 0);
 
     if (status == 0) {
-        char error[20];
         sprintf(error, "Double declaration de l'identificateur: %s", $1);
         erreur_semantique(error);
         return;
@@ -199,11 +202,10 @@ INSTRUCTION:
     INSTRUCTION_ENTREE_SORTIE;
 
 INSTRUCTION_AFFECTATION: VARIABLE aff EXPRESSION_ARITHMETIQUE pvg {
-    char error[20];
     
     if (!$1.isTableau) {
         if (verifier_modification_const($1.nom) == -1) {
-            sprintf(error, "Modification de la valeur d'une constante %s", $1);
+            sprintf(error, "Modification de la valeur d'une constante %s", $1.nom);
             erreur_semantique(error);
             return;
         }
@@ -223,13 +225,7 @@ INSTRUCTION_AFFECTATION: VARIABLE aff EXPRESSION_ARITHMETIQUE pvg {
 
 EXPRESSION_ARITHMETIQUE: 
     EXPRESSION_1 sym_plus EXPRESSION_ARITHMETIQUE {
-        if (!verifier_biblio_lang_declaree()) {
-            erreur_semantique("La bibliotheque lang n'est pas declaree");
-            return;
-        }
-
         // verifier la non-compatibilite de type
-        char error[20];
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
@@ -242,7 +238,6 @@ EXPRESSION_ARITHMETIQUE:
     }| 
     EXPRESSION_1 sym_moins EXPRESSION_ARITHMETIQUE {
         // verifier la non-compatibilite de type
-        char error[20];
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
@@ -261,7 +256,6 @@ EXPRESSION_ARITHMETIQUE:
 EXPRESSION_1: 
     EXPRESSION_2 sym_mul EXPRESSION_1 {
         // verifier la non-compatibilite de type
-        char error[20];
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
@@ -274,7 +268,6 @@ EXPRESSION_1:
     }| 
     EXPRESSION_2 sym_div EXPRESSION_1 {
         // verifier la non-compatibilite de type
-        char error[20];
 
         if ($1.isFloat != $3.isFloat) {
             sprintf(error, "Non-compatibilite de type dans l'operation : %s", $2);
@@ -292,6 +285,11 @@ EXPRESSION_1:
         strcpy($$.valeur, "1");
     }|
     EXPRESSION_2 {
+        if (!verifier_biblio_lang_declaree()) {
+            erreur_semantique("La bibliotheque lang n'est pas declaree");
+            return;
+        }
+
         $$.isFloat = $1.isFloat;
         strcpy($$.valeur, $1.valeur);
     };
@@ -311,7 +309,6 @@ EXPRESSION_2:
     };
 
 VARIABLE: idf SUITE_IDF {
-    char error[20];
     // non declaration
     if (verifier_non_declaration($1)) {
         sprintf(error, "Non declaration de l'identificateur %s", $1);
@@ -367,7 +364,6 @@ INSTRUCTION_FOR: mc_for parenthese_ouv PARAMETRE_BOUCLE parenthese_fer mc_do BLO
 
 PARAMETRE_BOUCLE: INITIALISATION_COMPTEUR pvg CONDITION pvg INCREMENTATION_COMPTEUR {
     if (strcmp($1, $5) != 0) {
-        char error[20];
         sprintf(error, "La varaible %s de la partie initialisation doit etre incrementee", $1);
         erreur_semantique(error);
         return;
@@ -375,7 +371,6 @@ PARAMETRE_BOUCLE: INITIALISATION_COMPTEUR pvg CONDITION pvg INCREMENTATION_COMPT
 };
 
 INITIALISATION_COMPTEUR: idf aff EXPRESSION_ARITHMETIQUE {
-    char error[20];
     int type = type_variable($1);
 
     // verifier l'inexistance
@@ -409,7 +404,7 @@ INITIALISATION_COMPTEUR: idf aff EXPRESSION_ARITHMETIQUE {
         return;
     }
 
-    $$ = $1; 
+    $$ = $1;
 };
 
 CONDITION: CONDITION1 oper_ou CONDITION |
@@ -427,7 +422,6 @@ CONDITION2:
 COMPARAISON: 
     COMPARAISON1 oper_inf COMPARAISON {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -435,7 +429,6 @@ COMPARAISON:
     } |
     COMPARAISON1 oper_inf_egal COMPARAISON  {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -443,7 +436,6 @@ COMPARAISON:
     }|
     COMPARAISON1 oper_sup COMPARAISON  {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -451,7 +443,6 @@ COMPARAISON:
     }|
     COMPARAISON1 oper_sup_egal COMPARAISON  {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -459,7 +450,6 @@ COMPARAISON:
     }|
     COMPARAISON1 oper_egalite COMPARAISON  {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -467,7 +457,6 @@ COMPARAISON:
     }|
     COMPARAISON1 oper_inegalite COMPARAISON  {
         if ($1 != $3) {
-            char error[20];
             sprintf(error, "Non compatibilite de type dans la comparaison %s", $2);
             erreur_semantique(error);
             return;
@@ -477,20 +466,10 @@ COMPARAISON:
 
 COMPARAISON1:
     VARIABLE {
-        // ajouter le cas d'un tableau
-        int type = type_variable($1.nom);
-
-        if (type == -1) {
-            char error[20];
-            sprintf(error, "Non declaration de l'identificateur %s", $1.nom);
-            erreur_semantique(error);
-            return;
-        }
-
-        $$ = type;
+        $$ = type_variable($1.nom);
     }|
     CST_TYPE {$$ = $1.isFloat;};
-    
+
 INCREMENTATION_COMPTEUR: idf inc {
     $$ = $1;
 };
@@ -500,17 +479,125 @@ INSTRUCTION_IF:
     mc_if parenthese_ouv CONDITION parenthese_fer mc_do BLOC_INSTRUCTIONS mc_else BLOC_INSTRUCTIONS mc_endif;
 
 INSTRUCTION_ENTREE_SORTIE:
-    INSTRUCTION_ENTREE pvg|
-    INSTRUCTION_SORTIE pvg;
+    INSTRUCTION_ENTREE pvg {
+        // verifier si la bib io est declaree
+        if (!verifier_biblio_io_declaree()) {
+            erreur_semantique("La bibliotheque io n'est pas declaree");
+            return;
+        }
 
-INSTRUCTION_ENTREE: mc_input parenthese_ouv double_quote SIGNE_FORMATTAGE double_quote vg idf parenthese_fer;
+        // initialiser les compteurs
+        cpt_idf_ES = 0;
+        cpt_signe_format = 0;
+    }|
+    INSTRUCTION_SORTIE pvg {
+        // verifier si la bib io est declaree
+        if (!verifier_biblio_io_declaree()) {
+            erreur_semantique("La bibliotheque io n'est pas declaree");
+            return;
+        }
 
-INSTRUCTION_SORTIE: mc_write parenthese_ouv double_quote chaine_caractere double_quote IDF_WRITE parenthese_fer;
+        // initialiser les compteurs
+        cpt_idf_ES = 0;
+        cpt_signe_format = 0;
+    };
 
-IDF_WRITE: vg idf IDF_WRITE | 
-    ;
+INSTRUCTION_ENTREE: mc_input parenthese_ouv double_quote LIST_SIGNE_FORMATTAGE double_quote IDF_INPUT parenthese_fer {
+    
+    // verifier si les nombres de signes de formattage est egale au nombre d'idf 
+    if (cpt_signe_format != cpt_idf_ES) {
+        sprintf(error, "Nombre de signe de formattage %d n'égale pas au nombre de variable %d dans Input", cpt_signe_format,cpt_idf_ES) ;
+        erreur_semantique(error);
+        return;
+    }
 
-SIGNE_FORMATTAGE: signe_formattage_entier | signe_formattage_reel;
+    int i;
+    // parcourir les deux tableaux pour verifier la compatibilite de type entre les idf et les signes de formattage
+    for (i = 0; i < cpt_signe_format; i++) {
+        // parcourir le tableau des idf a partir du dernier type inserer
+        // parcourir le tableau des signes a partir du premier type inserer 
+        if (list_signe_format[i] != list_type_idf_ES[20 - cpt_idf_ES + i]) {
+            sprintf(error, " Signe de formattage  incompatible avec le type  de variable dans Input");
+            erreur_semantique(error);
+            return;
+        }
+    }
+};
+
+IDF_INPUT: 
+    vg VARIABLE IDF_INPUT {
+        // verifier si l'idf est une constante
+        if (verifier_modification_const($2.nom) == -1) {
+            sprintf(error, "Modification de la valeur d'une constante %s", $2.nom);
+            erreur_semantique(error);
+            return;
+        }
+
+        // inserer les types dans la fin du tableau
+        list_type_idf_ES[19 - cpt_idf_ES] = type_variable($2.nom);
+        cpt_idf_ES++;
+    }|
+    vg VARIABLE {
+        // verifier si l'idf est une constante
+        if (verifier_modification_const($2.nom) == -1) {
+            sprintf(error, "Modification de la valeur d'une constante %s", $2.nom);
+            erreur_semantique(error);
+            return;
+        }
+
+        // inserer les types dans la fin du tableau
+        list_type_idf_ES[19 - cpt_idf_ES] = type_variable($2.nom);
+        cpt_idf_ES++;
+    };
+
+INSTRUCTION_SORTIE: mc_write parenthese_ouv double_quote CH_CAR double_quote IDF_WRITE parenthese_fer {
+    // verifier si les nombres de signes de formattage est egale au nombre d'idf 
+    if (cpt_signe_format != cpt_idf_ES) {
+        sprintf(error, "Nombre de signe de formattage %d n'égale pas au nombre de variable %d dans Write", cpt_signe_format,cpt_idf_ES) ;
+        erreur_semantique(error);
+        return;
+    }
+
+    int i;
+    // parcourir les deux tableaux pour verifier la compatibilite de type entre les idf et les signes de formattage
+    for (i = 0; i < cpt_signe_format; i++) {
+        // parcourir le tableau des idf a partir du dernier type inserer
+        // parcourir le tableau des signes a partir du premier type inserer 
+        if (list_signe_format[i] != list_type_idf_ES[20 - cpt_idf_ES + i]) {
+            sprintf(error, " Signe de formattage incompatible avec le type de variable dans Write");
+            erreur_semantique(error);
+            return;
+        }
+    }
+};
+
+IDF_WRITE: 
+    vg VARIABLE IDF_WRITE {
+        // inserer les types dans la fin du tableau
+        list_type_idf_ES[19 - cpt_idf_ES] = type_variable($2.nom);
+        cpt_idf_ES++;
+    } | ;
+
+LIST_SIGNE_FORMATTAGE: 
+    SIGNE_FORMATTAGE LIST_SIGNE_FORMATTAGE |
+    SIGNE_FORMATTAGE ;
+
+CH_CAR: chaine_caractere CH_CAR 
+    | SIGNE_FORMATTAGE CH_CAR
+    | chaine_caractere
+    | SIGNE_FORMATTAGE
+    | idf CH_CAR // pour qu'il accepte les mots en majuscule
+    | idf;
+
+SIGNE_FORMATTAGE: 
+    signe_formattage_entier {
+        list_signe_format[cpt_signe_format] = 0;
+        cpt_signe_format++;
+    } | 
+    signe_formattage_reel {
+        list_signe_format[cpt_signe_format] = 1;
+        cpt_signe_format++;
+    };
 %%
 
 int main() {
@@ -522,9 +609,9 @@ int main() {
 yywrap () {}
 
 void yyerror(const char *msg) {
-    printf("Erreur syntaxique : %s à la ligne %d, colonne %d\n", msg, nb_ligne, col);
+    printf("Erreur syntaxique : %s à la ligne %d, colonne %d", msg, nb_ligne, col);
 }
 
 void erreur_semantique(const char *msg) {
-    printf("Erreur semantique : %s à la ligne %d, colonne %d\n", msg, nb_ligne, col);
+    printf("Erreur semantique : %s à la ligne %d, colonne %d", msg, nb_ligne, col);
 }
