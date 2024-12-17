@@ -59,9 +59,8 @@ void erreur_semantique(const char *msg);
 %token <str> idf <entier> cst_entier <real> cst_reel
 %token oper_et oper_ou oper_negation
 %token <str> oper_sup_egal oper_inf_egal oper_sup oper_inf oper_inegalite oper_egalite
-%token signe_formattage_entier signe_formattage_reel
 %token err
-%token chaine_caractere
+%token <str> chaine_caractere
 %right aff
 
 %start S
@@ -114,7 +113,7 @@ List_Idf_V_T:
 
 V_T: idf B {
     char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
-    if (isFloat != typeRecuIsFloat) {
+    if (isFloat != typeRecuIsFloat && isTableau == 0) {
         sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
         erreur_semantique(error);
         return;
@@ -502,8 +501,39 @@ INSTRUCTION_ENTREE_SORTIE:
         cpt_signe_format = 0;
     };
 
-INSTRUCTION_ENTREE: mc_input parenthese_ouv double_quote LIST_SIGNE_FORMATTAGE double_quote IDF_INPUT parenthese_fer {
-    
+INSTRUCTION_ENTREE: mc_input parenthese_ouv chaine_caractere IDF_INPUT parenthese_fer {
+    int i;
+
+    // parcourir la chaine de caractere pour compter les signes de formattage
+    for (i = 0; i < strlen($3) - 1; i++) {
+        if ($3[i] == '%') {
+            // un entier
+            if ($3[i + 1] == 'd') {
+                list_signe_format[cpt_signe_format] = 0;
+                cpt_signe_format++;
+                i++;
+            } 
+            // un reel
+            else if ($3[i + 1] == 'f') {
+                list_signe_format[cpt_signe_format] = 1;
+                cpt_signe_format++;
+                i++;
+            } 
+            // signe invalid
+            else {
+                sprintf(error, "Signe de formattage inexistant %c%c", '%', $3[i + 1]);
+                erreur_semantique(error);
+                return;
+            }
+        } 
+        // si la chaine contient autre que les blancs et les signes
+        else if ($3[i] != ' '){
+            // sauter les espaces
+            erreur_semantique("Input doit contenir que les signes de formattage");
+            return;
+        }
+    }
+
     // verifier si les nombres de signes de formattage est egale au nombre d'idf 
     if (cpt_signe_format != cpt_idf_ES) {
         sprintf(error, "Nombre de signe de formattage %d n'égale pas au nombre de variable %d dans Input", cpt_signe_format,cpt_idf_ES) ;
@@ -511,7 +541,6 @@ INSTRUCTION_ENTREE: mc_input parenthese_ouv double_quote LIST_SIGNE_FORMATTAGE d
         return;
     }
 
-    int i;
     // parcourir les deux tableaux pour verifier la compatibilite de type entre les idf et les signes de formattage
     for (i = 0; i < cpt_signe_format; i++) {
         // parcourir le tableau des idf a partir du dernier type inserer
@@ -550,7 +579,27 @@ IDF_INPUT:
         cpt_idf_ES++;
     };
 
-INSTRUCTION_SORTIE: mc_write parenthese_ouv double_quote CH_CAR double_quote IDF_WRITE parenthese_fer {
+INSTRUCTION_SORTIE: mc_write parenthese_ouv chaine_caractere IDF_WRITE parenthese_fer {
+    int i;
+
+    for (i = 0; i < strlen($3); i++) {
+        // compter les signes de formattage
+        if ($3[i] == '%' && i < strlen($3) - 1) {
+            // un entier
+            if ($3[i + 1] == 'd') {
+                list_signe_format[cpt_signe_format] = 0;
+                cpt_signe_format++;
+                i++;
+            } 
+            // un reel
+            else if ($3[i + 1] == 'f') {
+                list_signe_format[cpt_signe_format] = 1;
+                cpt_signe_format++;
+                i++;
+            }
+        }
+    }
+
     // verifier si les nombres de signes de formattage est egale au nombre d'idf 
     if (cpt_signe_format != cpt_idf_ES) {
         sprintf(error, "Nombre de signe de formattage %d n'égale pas au nombre de variable %d dans Write", cpt_signe_format,cpt_idf_ES) ;
@@ -558,7 +607,6 @@ INSTRUCTION_SORTIE: mc_write parenthese_ouv double_quote CH_CAR double_quote IDF
         return;
     }
 
-    int i;
     // parcourir les deux tableaux pour verifier la compatibilite de type entre les idf et les signes de formattage
     for (i = 0; i < cpt_signe_format; i++) {
         // parcourir le tableau des idf a partir du dernier type inserer
@@ -577,27 +625,6 @@ IDF_WRITE:
         list_type_idf_ES[19 - cpt_idf_ES] = type_variable($2.nom);
         cpt_idf_ES++;
     } | ;
-
-LIST_SIGNE_FORMATTAGE: 
-    SIGNE_FORMATTAGE LIST_SIGNE_FORMATTAGE |
-    SIGNE_FORMATTAGE ;
-
-CH_CAR: chaine_caractere CH_CAR 
-    | SIGNE_FORMATTAGE CH_CAR
-    | chaine_caractere
-    | SIGNE_FORMATTAGE
-    | idf CH_CAR // pour qu'il accepte les mots en majuscule
-    | idf;
-
-SIGNE_FORMATTAGE: 
-    signe_formattage_entier {
-        list_signe_format[cpt_signe_format] = 0;
-        cpt_signe_format++;
-    } | 
-    signe_formattage_reel {
-        list_signe_format[cpt_signe_format] = 1;
-        cpt_signe_format++;
-    };
 %%
 
 int main() {

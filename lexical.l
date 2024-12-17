@@ -19,7 +19,7 @@ COMMENTAIRE1 #.*
 COMMENTAIRE2 \/\/.*
 COMMENTAIRE3 "/*"(.|\n)*"*/"
 COMMENTAIRE {COMMENTAIRE1}|{COMMENTAIRE2}|{COMMENTAIRE3}
-CHAINE_CARACTERE ({lettre}|{chiffre}|[*\\/:_$+-])*
+CHAINE_CARACTERE \"(.*)+\"
 
 %%
 import      {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_import; };
@@ -123,9 +123,6 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 "!=" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inegalite;}
 "==" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_egalite;}
 
-"%d" {col += yyleng; inserer_mots_separateurs(1,yytext); return signe_formattage_entier;}
-"%f" {col += yyleng; inserer_mots_separateurs(1,yytext); return signe_formattage_reel;}
-
 \n {nb_ligne++; col = 1;}
 [ \t] {col += yyleng;}
 
@@ -143,7 +140,14 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
 };
 
 {CHAINE_CARACTERE} {
-    col += yyleng; return chaine_caractere; 
+
+    // enlever les ""
+    yytext[yyleng - 1] = '\0';
+    yytext = yytext + 1;
+
+
+    yylval.str = strdup(yytext);
+    col += yyleng; return chaine_caractere;
 }
 
 . {printf("Erreur lexicale a la ligne %d dans la chaine %s\n", nb_ligne, yytext); return err;}

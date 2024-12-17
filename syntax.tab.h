@@ -107,10 +107,8 @@
      oper_inf = 302,
      oper_inegalite = 303,
      oper_egalite = 304,
-     signe_formattage_entier = 305,
-     signe_formattage_reel = 306,
-     err = 307,
-     chaine_caractere = 308
+     err = 305,
+     chaine_caractere = 306
    };
 #endif
 
@@ -133,7 +131,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 137 "syntax.tab.h"
+#line 135 "syntax.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

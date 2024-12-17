@@ -1,20 +1,55 @@
 import ISIL.lang;
 import ISIL.io;
+// la non declaration des bibliotheques
 
 Programme ISIL_A
 PDec
-    Integer T[2] | E = 2;
-    Float E4 = 92.2;
+    Integer X = (-5) | Y | I;
+    Float A = 2.3 | B = (+3.1);
+    Integer T[2];
 
-InDebut
-    T[1] <-- 1 * 2 / E + 3;
+    // constante
+    final Integer C1 = 3;
+    final Float C2 = 3.21;
 
-    Input("%d%d%f", T[1], E, E4);
-    Input("%d",E);
 
-    Write("Hello fdasjklfas \n");
+    // Integer Z = 2.1; // incompatibilite de type dans la declaration
+    // Float A; // double declaration
+    InDebut
 
-    IF (E < E4) DO
-    ENDIF;
-    
+    Input("%d %f %d %d", X, A, Y, I);
+
+    T[1] <-- 1 * 2 / (X + 3);
+    IF (X < 2 && A > 2.3 || !(T[1] > C1)) DO
+        For (I <-- X / 2 + C1; I < 3 && I > 0; I++) DO
+
+            Write("Hell World %d la valeur de X est : %d!\n", I, X);
+            X <-- X + 2 / C1;
+
+        ENDFOR
+    ENDIF
+
+    // Les erreurs traitees
+    // idf non declare
+    R <-- 1;
+    // division par 0
+    X <-- X * 2 / (0);
+    // utilisation d'une variable simple comme un tableau
+    Y[2] <-- 1;
+    // utilisation d'un tableau comme une variable simple
+    T <-- 1;
+    // le depassement de la taille du tableau
+    T[3] <-- 1
+    // l'incompatibilite de type dans les operations
+    X <-- 3 * B 
+    // Modification de la valeur d'une constante
+    C1 <-- 2;
+    // l'incompatibilite de type au niveau des signes de formattage
+    Input("%f %d",A ,A );
+    // l'incompatibilite de nombre de signes de formattage et le nombre des variables
+    Write("%d %d", B);
+    // l'incompatibilite de type dans les conditions
+    IF (2 < 2.3) DO
+    ENDIF
+
 InFin.
