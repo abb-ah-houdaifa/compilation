@@ -3,12 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-// taches restantes :
-/*
-    3. les bibliotheques
-    4. les entrees sorties
-*/
-
 // designe une entite de type variable simple
 typedef struct SymboleVariable {
     bool status;            // le champ est-il rempli
@@ -24,7 +18,7 @@ typedef struct SymboleVariable {
 bool biblio_io_declaree = false;
 bool biblio_lang_declaree = false;
 
-// si la bibliotheque est deja declare retourner faux
+// si la bibliotheque est deja declaree retourner faux
 bool declarer_biblio_io() {
     if (biblio_io_declaree)
         return false;
@@ -33,7 +27,7 @@ bool declarer_biblio_io() {
     return true;
 }
 
-// si la bibliotheque est deja declare retourner faux
+// si la bibliotheque est deja declaree retourner faux
 bool declarer_biblio_lang() {
     if (biblio_lang_declaree)
         return false;
@@ -222,12 +216,6 @@ int verifier_modification_const(char* nom) {
     return entite->isFloat;
 }
 
-bool verifier_si_tableau(char* nom) {
-    SymboleVariable* entite = rechercher_variable(nom);
-
-    return entite->isTableau;
-}
-
 // verifier si la taille du tableau ete depasse et retourne -1
 // sinon elle retroune le type de l'entite Float ou Integer
 int verifier_taille_tableau(char* nom, int index) {
@@ -252,7 +240,7 @@ void afficher_table_variables() {
 
     printf("\n\t/******************Table des symboles des variables******************/\n");
     printf("\t_________________________________________________________________________________________________\n");
-    printf("\t| NomEntite\t    |   CodeEntite   |  TypeEntite  | ValeurEntite |  Constante |    Tableau    |\n");
+    printf("\t| NomEntite\t    |   CodeEntite   |  TypeEntite  | ValeurEntite | Constante  |    Tableau    |\n");
     printf("\t|___________________|________________|______________|______________|____________|_______________|\n");
     while (ptr != NULL) {
         char* type = (ptr->isFloat) ? "Float" : "Integer";

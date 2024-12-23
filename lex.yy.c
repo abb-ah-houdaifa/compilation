@@ -282,20 +282,20 @@ static void yy_fatal_error YY_PROTO(( yyconst char msg[] ));
 	*yy_cp = '\0'; \
 	yy_c_buf_p = yy_cp;
 
-#define YY_NUM_RULES 53
-#define YY_END_OF_BUFFER 54
+#define YY_NUM_RULES 52
+#define YY_END_OF_BUFFER 53
 static yyconst short int yy_accept[144] =
     {   0,
-        0,    0,   54,   52,   49,   48,   41,   23,   50,   52,
-       33,   34,   37,   24,   29,   25,   31,   38,   21,   30,
-       45,   26,   44,   22,   22,   22,   22,   22,   22,   22,
-       35,   36,   52,   52,   52,   32,   46,    0,   51,   50,
-       40,    0,   28,    0,   50,    0,   21,    0,   43,   47,
-       42,   22,   22,   17,   22,   22,   22,   22,   16,   22,
-       22,   22,   22,   22,    0,    0,    3,    0,   39,    0,
-        0,    0,    0,   50,    0,   20,   27,   22,   22,   22,
+        0,    0,   53,   51,   48,   47,   40,   51,   49,   51,
+       32,   33,   36,   23,   28,   24,   30,   37,   21,   29,
+       44,   25,   43,   22,   22,   22,   22,   22,   22,   22,
+       34,   35,   51,   51,   51,   31,   45,    0,   50,   49,
+       39,    0,   27,    0,   49,    0,   21,    0,   42,   46,
+       41,   22,   22,   17,   22,   22,   22,   22,   16,   22,
+       22,   22,   22,   22,    0,    0,    3,    0,   38,    0,
+        0,    0,    0,   49,    0,   20,   26,   22,   22,   22,
        14,   22,   22,   22,   22,   22,   22,   22,   22,    0,
-        0,    0,    0,   21,    0,   50,    0,   18,   22,   22,
+        0,    0,    0,   21,    0,   49,    0,   18,   22,   22,
 
        22,    2,   22,   22,   22,   22,    5,   22,   22,    0,
         0,    4,    0,    0,    0,    0,   22,   19,   11,   22,
@@ -865,141 +865,136 @@ YY_RULE_SETUP
 case 23:
 YY_RULE_SETUP
 #line 91 "lexical.l"
-return double_quote;
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_plus;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 93 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_plus;}
+#line 92 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_moins;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 94 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_moins;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_initialisation;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 96 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_initialisation;}
+#line 95 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return aff;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 97 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return aff;}
+#line 96 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return inc;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 98 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return inc;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return vg;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 100 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return vg;}
+#line 99 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return pvg;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 101 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return pvg;}
+#line 100 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return point;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 102 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return point;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return separateur;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 104 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return separateur;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return parenthese_ouv;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 106 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return parenthese_ouv;}
+#line 105 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return parenthese_fer;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 107 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return parenthese_fer;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return crochet_ouv;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 109 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return crochet_ouv;}
+#line 108 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return crochet_fer;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 110 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return crochet_fer;}
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_mul;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 112 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_mul;}
+#line 111 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_div;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 113 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_div;}
+{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_ou;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 115 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_ou;}
+#line 114 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_et;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 116 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_et;}
+#line 115 "lexical.l"
+{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_negation;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 117 "lexical.l"
-{col += yyleng; inserer_mots_separateurs(1,yytext); return oper_negation;}
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup_egal;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 119 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup_egal;}
+#line 118 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf_egal;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 120 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf_egal;}
+#line 119 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 121 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_sup;}
+#line 120 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 122 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inf;}
+#line 121 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inegalite;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 123 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_inegalite;}
+#line 122 "lexical.l"
+{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_egalite;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 124 "lexical.l"
-{col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return oper_egalite;}
+{nb_ligne++; col = 1;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 126 "lexical.l"
-{nb_ligne++; col = 1;}
+#line 125 "lexical.l"
+{col += yyleng;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
 #line 127 "lexical.l"
-{col += yyleng;}
-	YY_BREAK
-case 50:
-YY_RULE_SETUP
-#line 129 "lexical.l"
 {
     int i;
     // parcourir la chaine pour localiser les sauts de ligne
@@ -1013,9 +1008,9 @@ YY_RULE_SETUP
     }
 };
 	YY_BREAK
-case 51:
+case 50:
 YY_RULE_SETUP
-#line 142 "lexical.l"
+#line 140 "lexical.l"
 {
 
     // enlever les ""
@@ -1027,17 +1022,17 @@ YY_RULE_SETUP
     col += yyleng; return chaine_caractere;
 }
 	YY_BREAK
-case 52:
+case 51:
 YY_RULE_SETUP
-#line 153 "lexical.l"
+#line 151 "lexical.l"
 {printf("Erreur lexicale a la ligne %d dans la chaine %s\n", nb_ligne, yytext); return err;}
 	YY_BREAK
-case 53:
+case 52:
 YY_RULE_SETUP
-#line 154 "lexical.l"
+#line 152 "lexical.l"
 ECHO;
 	YY_BREAK
-#line 1041 "lex.yy.c"
+#line 1036 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1923,4 +1918,4 @@ int main()
 	return 0;
 	}
 #endif
-#line 154 "lexical.l"
+#line 152 "lexical.l"

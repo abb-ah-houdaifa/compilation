@@ -22,7 +22,7 @@ int cpt_idf_ES = 0;
 int list_signe_format[20];
 int list_type_idf_ES[20];
 
-// Déclaration de la fonction d'erreur
+// Déclaration des fonctions d'erreur
 void yyerror(const char *msg);
 void erreur_semantique(const char *msg);
 %}
@@ -53,7 +53,7 @@ void erreur_semantique(const char *msg);
 }
 
 %token mc_import mc_io mc_lang mc_isil mc_programme mc_debut mc_dec mc_fin mc_final <str> mc_int <str> mc_float
-%token point pvg vg separateur crochet_ouv crochet_fer parenthese_ouv parenthese_fer aff inc oper_initialisation double_quote
+%token point pvg vg separateur crochet_ouv crochet_fer parenthese_ouv parenthese_fer aff inc oper_initialisation
 %token <str> sym_mul sym_div sym_plus sym_moins
 %token mc_for mc_do mc_endfor mc_if mc_endif mc_else mc_input mc_write
 %token <str> idf <entier> cst_entier <real> cst_reel
@@ -111,7 +111,7 @@ List_Idf_V_T:
     V_T separateur List_Idf_V_T |
     V_T;
 
-V_T: idf B {
+V_T: idf SUITE_VT {
     char *typeAttendu = (isFloat == 1) ? "Float" : "Integer";
     if (isFloat != typeRecuIsFloat && isTableau == 0) {
         sprintf(error, "Erreur sémantique : type incompatible. Attendu '%s'.", typeAttendu);
@@ -128,8 +128,8 @@ V_T: idf B {
     }
 };
 
-// la partie qui suit le nom de la variable elle peut prendre ([] (tableau), = (initialisation), epselon (variable non initialisee))
-B: 
+// la partie qui suit le nom de la variable elle peut prendre ([] (tableau), = (initialisation), epsilon (variable non initialisee))
+SUITE_VT: 
     crochet_ouv cst_entier crochet_fer {
         isTableau = 1;
         sprintf(valeur, "%d", $2);
@@ -336,7 +336,7 @@ VARIABLE: idf SUITE_IDF {
     } else {
 
         // verifier si l'identificateur est un tableau
-        if (verifier_si_tableau($1)) {
+        if (est_tableau($1)) {
             sprintf(error, "Variable %s est un tableau", $1);
             erreur_semantique(error);
             return;

@@ -19,21 +19,26 @@ PDec
 
     Input("%d %f %d %d", X, A, Y, I);
 
-    T[1] <-- 1 * 2 / (X + 3);
+    T[1] <-- 1 * 2 / (X + 3) - T[0]; // operation Integer
+    B <-- C2 / (B - A) * (-12.4);
+
+
     IF (X < 2 && A > 2.3 || !(T[1] > C1)) DO
+
         For (I <-- X / 2 + C1; I < 3 && I > 0; I++) DO
 
             Write("Hell World %d la valeur de X est : %d!\n", I, X);
             X <-- X + 2 / C1;
 
         ENDFOR
+
     ENDIF
 
     // Les erreurs traitees
     // idf non declare
     R <-- 1;
     // division par 0
-    X <-- X * 2 / (0);
+    X <-- X * 2 / 0;
     // utilisation d'une variable simple comme un tableau
     Y[2] <-- 1;
     // utilisation d'un tableau comme une variable simple

@@ -88,8 +88,6 @@ ENDIF       {col += yyleng; inserer_mots_separateurs(0, yytext); return mc_endif
     return idf;
 };
 
-\" return double_quote;
-
 "+" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_plus;}
 "-" {col += yyleng; yylval.str=strdup(yytext); inserer_mots_separateurs(1,yytext); return sym_moins;}
 
